@@ -15,12 +15,16 @@ import { CombatSystem } from './combat/combat.js';
 import { WantedSystem } from './police/wanted_system.js';
 import { PoliceManager } from './police/police_manager.js';
 import { RespawnSystem } from './player/respawn_system.js';
-import { VEHICLE_TYPES } from './vehicles/vehicle_models.js';
+import { MissionManager } from './missions/mission_manager.js';
+import { HUD } from './ui/hud.js';
+import { FullMapView } from './ui/map_view.js';
+import { MenuManager } from './ui/menus.js';
 
-// Entry Point & Orchestrator for HEATWAVE: Coral Vista (R3)
+// Entry Point & Orchestrator for HEATWAVE: Coral Vista (R4)
 
 window.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('game-canvas');
+  const hudCanvas = document.getElementById('hud-canvas');
   const params = new URLSearchParams(window.location.search);
   const shot = params.get('shot');
   const seed = parseInt(params.get('seed') || '1', 10);
@@ -46,6 +50,13 @@ window.addEventListener('DOMContentLoaded', () => {
   const police = new PoliceManager(engine.scene, collisions, vehicleManager.factory, prng);
   const respawn = new RespawnSystem(player, wanted, vehicleManager);
 
+  const missions = new MissionManager();
+  const hud = new HUD(hudCanvas);
+  const mapView = new FullMapView(hudCanvas);
+  const menus = new MenuManager(hudCanvas);
+
+  let isMapOpen = false;
+
   // Screenshot configurations
   if (shot === 'foot') {
     // Beautiful composition on Seabreeze Promenade sidewalk
@@ -57,7 +68,9 @@ window.addEventListener('DOMContentLoaded', () => {
     player._updateCamera();
     environment.updateFollow(player.position);
 
-    // Pedestrians walking
+    // Active Dialogue for foot screenshot
+    missions.showDialogue('Nina Vega', "Rafa, Los Manta left their sports car on Seabreeze Blvd. Grab it!", 999);
+
     if (pedestrianManager.pedestrians.length >= 2) {
       pedestrianManager.pedestrians[0].group.position.set(34, 0.35, 215);
       pedestrianManager.pedestrians[0].dir = -1;
@@ -68,16 +81,14 @@ window.addEventListener('DOMContentLoaded', () => {
       pedestrianManager.pedestrians[1].group.rotation.y = Math.PI / 2;
     }
 
-    // Officer on the promenade
     if (police.officers.length > 0) {
-      police.officers[0].mesh.position.set(38, 0.35, 212);
+      police.officers[0].mesh.position.set(40, 0.35, 212);
       police.officers[0].mesh.rotation.y = Math.PI / 2;
     }
   } else if (shot === 'chase') {
     // High-Stakes 3-Star Police Pursuit Composition
     wanted.setStars(3);
 
-    // 1. Red sports car speeding forward along Seabreeze Boulevard (+X)
     const sportsCar = vehicleManager.vehicles[0];
     if (sportsCar) {
       sportsCar.controller.position.set(48, 0, 196);
@@ -89,7 +100,6 @@ window.addEventListener('DOMContentLoaded', () => {
       player.mesh.visible = false;
     }
 
-    // 2. Trailing CVPD Interceptors right behind sports car (-X) with Glowing Red/Blue Lightbars
     if (police.patrolCars.length >= 2) {
       const c1 = police.patrolCars[0];
       c1.mesh.position.set(32, 0, 194.5);
@@ -104,7 +114,6 @@ window.addEventListener('DOMContentLoaded', () => {
       c2.blueLight.material.color.setHex(0x0088ff);
     }
 
-    // 3. CVPD Searchlight Helicopter hovering above
     if (police.helicopter) {
       police.helicopter.visible = true;
       police.helicopter.position.set(36, 20, 190);
@@ -112,16 +121,45 @@ window.addEventListener('DOMContentLoaded', () => {
       police.spotDisc.position.set(48, 0.32, 196);
     }
 
-    // 4. Dramatic 3/4 camera ahead of player vehicle looking back at the oncoming pursuit
     engine.camera.position.set(62, 2.2, 191);
     engine.camera.lookAt(new THREE.Vector3(42, 1.1, 196));
     environment.updateFollow(new THREE.Vector3(48, 0, 196));
+  } else if (shot === 'title') {
+    // Aerial panoramic view of the sun-soaked city
+    engine.camera.position.set(-60, 52, 110);
+    engine.camera.lookAt(new THREE.Vector3(30, 8, 200));
+    environment.updateFollow(new THREE.Vector3(0, 0, 150));
+  } else if (shot === 'map') {
+    // Handled purely by 2D vector map render
   } else {
     environment.updateFollow(player.position);
   }
 
   engine.addUpdatable((dt) => {
-    if (!shot) {
+    if (shot === 'map') {
+      mapView.render({ x: 21, z: 215 }, 1, missions.cash);
+      return;
+    }
+
+    if (shot === 'title') {
+      menus.renderTitle(hudCanvas.width || 1280, hudCanvas.height || 720);
+      return;
+    }
+
+    if (shot === 'foot' || shot === 'chase') {
+      hud.render(player, vehicleManager, wanted, combat, missions, false);
+      return;
+    }
+
+    // Normal interactive gameplay
+    if (input.wasJustPressed('KeyM')) {
+      isMapOpen = !isMapOpen;
+    }
+    if (input.wasJustPressed('Escape')) {
+      menus.state = (menus.state === 'paused') ? 'playing' : 'paused';
+    }
+
+    if (menus.state === 'playing' && !isMapOpen) {
       if (vehicleManager.playerVehicle) {
         vehicleManager.update(dt, player);
       } else {
@@ -136,21 +174,24 @@ window.addEventListener('DOMContentLoaded', () => {
       combat.update(dt, player, wanted, targetPool);
       police.update(dt, player.position, wanted.stars);
       respawn.update(dt);
+      missions.update(dt, player, wanted);
 
       trafficManager.update(dt, player.position, vehicleManager.playerVehicle);
       pedestrianManager.update(dt, player.position);
       environment.updateFollow(player.position);
-      input.postUpdate();
+    }
+
+    input.postUpdate();
+
+    // UI Rendering
+    if (isMapOpen) {
+      mapView.render(player.position, missions.currentMissionIndex + 1, missions.cash);
+    } else if (menus.state === 'paused') {
+      menus.renderPause(window.innerWidth, window.innerHeight);
+    } else {
+      hud.render(player, vehicleManager, wanted, combat, missions, false);
     }
   });
 
   engine.start();
-
-  if (shot) {
-    if (shot === 'foot') {
-      player._updateCamera();
-      environment.updateFollow(player.position);
-    }
-    engine.renderOnce();
-  }
 });

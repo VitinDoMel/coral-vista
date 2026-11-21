@@ -21,6 +21,7 @@
       width: 100%;
       height: 100%;
       display: block;
+      z-index: 1;
     }
     #ui-container {
       position: absolute;
@@ -29,9 +30,17 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
+      z-index: 10;
     }
-    .hud-element {
-      pointer-events: auto;
+    #hud-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 11;
+      pointer-events: none;
     }
     #reticle {
       position: absolute;
@@ -55,10 +64,10 @@
   </script>
 </head>
 <body>
-  <canvas id="game-canvas"></canvas>
+  <canvas id="game-canvas" width="1280" height="720"></canvas>
   <div id="ui-container">
     <div id="reticle"></div>
-    <canvas id="hud-canvas" class="hud-element" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></canvas>
+    <canvas id="hud-canvas" width="1280" height="720"></canvas>
   </div>
   <script type="module" src="./src/main.js"></script>
 </body>
