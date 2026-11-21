@@ -8,8 +8,12 @@ import { CollisionSystem } from './world/collisions.js';
 import { Environment } from './world/environment.js';
 import { City } from './world/city.js';
 import { Player } from './player/player.js';
+import { VehicleManager } from './vehicles/vehicle_manager.js';
+import { TrafficManager } from './traffic/traffic_manager.js';
+import { PedestrianManager } from './peds/pedestrian_manager.js';
+import { VEHICLE_TYPES } from './vehicles/vehicle_models.js';
 
-// Entry Point & Orchestrator for HEATWAVE: Coral Vista
+// Entry Point & Orchestrator for HEATWAVE: Coral Vista (R2)
 
 window.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('game-canvas');
@@ -29,24 +33,63 @@ window.addEventListener('DOMContentLoaded', () => {
   const city = new City(engine.scene, collisions, textures, props, prng);
   const player = new Player(engine.scene, collisions, input, engine.camera);
 
-  // Position player and camera for specific screenshot requirements
+  const vehicleManager = new VehicleManager(engine.scene, collisions, input, engine.camera);
+  const trafficManager = new TrafficManager(engine.scene, collisions, vehicleManager.factory, prng);
+  const pedestrianManager = new PedestrianManager(engine.scene, collisions, prng);
+
+  // Screenshot configurations
   if (shot === 'foot') {
     // Stunning vista along Seabreeze Boulevard:
     // Left: Art-deco pastel boulevard & street lamps; Right: Palms, golden beach, turquoise ocean
-    player.position.set(16, 0.35, 213.5);
+    player.position.set(19, 0.35, 214);
     player.mesh.position.copy(player.position);
     player.mesh.rotation.y = -Math.PI * 0.48;
     player.yaw = -Math.PI * 0.5;
     player.pitch = 0.08;
     player._updateCamera();
     environment.updateFollow(player.position);
+
+    // Place a couple pedestrians walking in the frame
+    if (pedestrianManager.pedestrians.length >= 2) {
+      pedestrianManager.pedestrians[0].group.position.set(32, 0.35, 215);
+      pedestrianManager.pedestrians[0].dir = -1;
+      pedestrianManager.pedestrians[0].group.rotation.y = Math.PI / 2;
+
+      pedestrianManager.pedestrians[1].group.position.set(45, 0.35, 217);
+      pedestrianManager.pedestrians[1].dir = -1;
+      pedestrianManager.pedestrians[1].group.rotation.y = Math.PI / 2;
+    }
+  } else if (shot === 'chase') {
+    // Player in Red Sports car speeding along Seabreeze Boulevard
+    const sportsCar = vehicleManager.vehicles[0];
+    if (sportsCar) {
+      sportsCar.controller.position.set(50, 0, 196);
+      sportsCar.controller.yaw = -Math.PI / 2;
+      sportsCar.controller.speed = 26.0;
+      sportsCar.controller.mesh.position.set(50, 0, 196);
+      sportsCar.controller.mesh.rotation.y = -Math.PI / 2;
+      vehicleManager.playerVehicle = sportsCar;
+      player.mesh.visible = false;
+
+      // Position 3/4 camera ahead of player vehicle
+      engine.camera.position.set(70, 3.2, 186);
+      engine.camera.lookAt(new THREE.Vector3(45, 1.2, 198));
+    }
   } else {
     environment.updateFollow(player.position);
   }
 
   engine.addUpdatable((dt) => {
     if (!shot) {
-      player.update(dt);
+      if (vehicleManager.playerVehicle) {
+        vehicleManager.update(dt, player);
+      } else {
+        player.update(dt);
+        vehicleManager.update(dt, player);
+      }
+
+      trafficManager.update(dt, player.position, vehicleManager.playerVehicle);
+      pedestrianManager.update(dt, player.position);
       environment.updateFollow(player.position);
       input.postUpdate();
     }
@@ -54,9 +97,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   engine.start();
 
-  // If in shot mode, render once deterministically
   if (shot) {
-    player._updateCamera();
+    if (shot === 'foot') {
+      player._updateCamera();
+    }
     environment.updateFollow(player.position);
     engine.renderOnce();
   }
