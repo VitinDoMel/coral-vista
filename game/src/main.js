@@ -46,7 +46,7 @@ class Game {
         this.pedestrians.update(delta, this.player.position);
         this.player.update(delta, this.input, this.traffic);
 
-        if (this.player.inVehicle && this.player.currentVehicle) {
+        if (!this.player.isStagedShot && this.player.inVehicle && this.player.currentVehicle) {
           this.carCamera.update(delta, this.player.currentVehicle);
         }
 
@@ -60,55 +60,62 @@ class Game {
     const shot = params.get('shot');
     if (!shot) return;
 
+    this.player.isStagedShot = true;
+
     if (shot === 'chase') {
-      // Player driving sports car fast along Ocean Boulevard
-      const playerCarModel = this.vehicleModels.createCarMesh('sports', 0xff3b30);
+      // Player driving cherry red sports coupe along Ocean Boulevard
+      const playerCarModel = this.vehicleModels.createCarMesh('sports', 0xe62e2d);
       const playerCar = new Vehicle(this.engine.scene, this.collisions, playerCarModel, 'sports');
-      playerCar.setPosition(-88.8, 15, 0); // North-bound lane
-      playerCar.speed = 28.0;
+      playerCar.setPosition(-88.5, 16, 0);
+      playerCar.speed = 29.0;
       this.player.enterVehicle(playerCar);
 
-      // 3 Police cruisers pursuing right behind with active emergency lights
-      const policeOffsets = [
-        { x: -88.8, z: -14 },
-        { x: -84.2, z: -22 },
-        { x: -93.4, z: -24 },
+      // 3 Police cruisers in hot pursuit visible directly in camera frame
+      const policeConfigs = [
+        { x: -84.0, z: 12, yaw: -0.08, speed: 28.5 }, // Flanking left lane attempting PIT
+        { x: -88.5, z: 6,  yaw: 0.0,   speed: 28.0 }, // Right behind rear bumper
+        { x: -92.5, z: 3,  yaw: 0.05,  speed: 27.5 }, // Following on right side
       ];
 
-      for (let i = 0; i < policeOffsets.length; i++) {
-        const off = policeOffsets[i];
+      for (let i = 0; i < policeConfigs.length; i++) {
+        const cfg = policeConfigs[i];
         const copModel = this.vehicleModels.createCarMesh('police', 0x152238);
         const copCar = new Vehicle(this.engine.scene, this.collisions, copModel, 'police');
-        copCar.setPosition(off.x, off.z, 0);
-        copCar.speed = 26.5;
+        copCar.setPosition(cfg.x, cfg.z, cfg.yaw);
+        copCar.speed = cfg.speed;
 
-        // Animate lightbar
         if (copModel.mesh.userData.lightbar) {
           copModel.mesh.userData.lightbar.red.visible = i % 2 === 0;
           copModel.mesh.userData.lightbar.blue.visible = i % 2 !== 0;
         }
       }
 
-      // Camera positioned dramatic behind-left
-      this.engine.camera.position.set(-91.5, 3.2, 5.5);
-      this.engine.camera.lookAt(-88.8, 1.4, 28);
-      this.carCamera.currentYaw = 0;
+      // Camera positioned high behind showing full chase action
+      this.engine.camera.position.set(-89.5, 3.8, -3.0);
+      this.engine.camera.lookAt(-87.5, 1.8, 22.0);
 
     } else if (shot === 'foot') {
-      this.player.position.set(-98, 0.2, 12); // On wooden beach boardwalk
-      this.player.yaw = 0.35;
+      // Scenic promenade vista: Rafa on the palm-lined sidewalk, avenue with traffic, Art Déco buildings and ocean
+      this.player.position.set(-91.5, 0.22, 24);
+      this.player.yaw = 0.22;
       this.player.pitch = 0.08;
       this.player.root.position.copy(this.player.position);
-      this.player.root.rotation.y = -2.5;
+      this.player.root.rotation.y = 0.25;
 
-      this.engine.camera.position.set(-96.2, 1.8, 8.5);
-      this.engine.camera.lookAt(-98, 1.5, 12);
+      this.engine.camera.position.set(-89.2, 2.4, 15.0);
+      this.engine.camera.lookAt(-91.8, 1.6, 27.0);
+
       const crosshair = document.getElementById('crosshair');
       if (crosshair) crosshair.style.display = 'block';
 
+    } else if (shot === 'aerial') {
+      // Magnificent aerial vista of Coral Vista from over the bay
+      this.engine.camera.position.set(-145, 68, 80);
+      this.engine.camera.lookAt(-30, 14, -30);
+
     } else if (shot === 'title') {
-      this.engine.camera.position.set(-95, 42, 110);
-      this.engine.camera.lookAt(-40, 12, -30);
+      this.engine.camera.position.set(-125, 48, 90);
+      this.engine.camera.lookAt(-45, 14, -20);
 
     } else if (shot === 'map') {
       this.engine.camera.position.set(0, 190, 0);

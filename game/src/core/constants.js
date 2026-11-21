@@ -9,7 +9,7 @@ export const WORLD = {
   BEACH_X: -110,
   AVENUE_X: -85,
   ROAD_WIDTH: 18,
-  SIDEWALK_WIDTH: 4,
+  SIDEWALK_WIDTH: 5,
   BLOCK_SIZE: 64,
   SEA_LEVEL: 0,
 };
@@ -23,18 +23,27 @@ export const DISTRICTS = {
 };
 
 export const COLORS = {
-  SKY_ZENITH: 0x2b1046,
-  SKY_HORIZON: 0xf37140,
-  FOG: 0xeb6b42,
-  SUN: 0xffa450,
-  SUN_AMBIENT: 0x934a62,
-  WATER: 0x14526b,
-  SAND: 0xdfb479,
-  ASPHALT: 0x282a2e,
-  CONCRETE: 0x8a8885,
-  CURB: 0xa8a59f,
-  PALM_WOOD: 0x5a3e2a,
-  PALM_LEAF: 0x2d6832,
+  SKY_ZENITH: 0x3d91d0,
+  SKY_HORIZON: 0xffb592,
+  FOG: 0xffd5bf,
+  SUN: 0xfff6e0,
+  SUN_AMBIENT: 0xfce2cc,
+  WATER: 0x009cb0,
+  SAND: 0xfce4b8,
+  ASPHALT: 0x36383e,
+  SIDEWALK: 0xdfd9ce,
+  CURB: 0xb5afa4,
+  PALM_WOOD: 0x8d6e63,
+  PALM_LEAF: 0x338a3e,
+  ART_DECO: [
+    0xf8bbd0, // Soft pastel pink
+    0xc8e6c9, // Mint pastel green
+    0xfff9c4, // Warm pastel cream
+    0xb2ebf2, // Pool turquoise
+    0xffccbc, // Coral peach
+    0xf5f5f5, // Crisp deco white
+    0xd1c4e9, // Lavender pastel
+  ],
   CONTAINER_COLORS: [0xd32f2f, 0x1976d2, 0x388e3c, 0xfbc02d, 0xe65100, 0x7b1fa2],
 };
 

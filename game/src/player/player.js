@@ -19,14 +19,15 @@ export class Player {
     this.inVehicle = false;
     this.currentVehicle = null;
     this.interactCooldown = 0;
+    this.isStagedShot = false;
 
     this.health = 100;
     this.armor = 100;
     this.money = 350;
 
     this.walkCycle = 0;
-    this.cameraDistance = 4.4;
-    this.cameraHeight = 1.9;
+    this.cameraDistance = 5.2;
+    this.cameraHeight = 2.2;
 
     this.buildMesh();
   }
@@ -105,13 +106,14 @@ export class Player {
   }
 
   update(delta, input, trafficManager) {
+    if (this.isStagedShot) return;
+
     if (this.interactCooldown > 0) {
       this.interactCooldown -= delta;
     }
 
     const wantsInteract = input.isDown('KeyF') || input.isDown('KeyE');
 
-    // Handle entering / exiting vehicle
     if (wantsInteract && this.interactCooldown <= 0) {
       this.interactCooldown = 0.5;
       if (this.inVehicle) {
@@ -166,12 +168,10 @@ export class Player {
       this.walkCycle = 0;
     }
 
-    // Accelerate smoothly
     const accel = PHYSICS.PLAYER_ACCEL * delta;
     this.velocity.x += clamp(targetVx - this.velocity.x, -accel, accel);
     this.velocity.z += clamp(targetVz - this.velocity.z, -accel, accel);
 
-    // Jump & Gravity
     if (this.isGrounded && move.jump) {
       this.velocity.y = PHYSICS.PLAYER_JUMP_SPEED;
       this.isGrounded = false;
@@ -180,7 +180,6 @@ export class Player {
     this.velocity.y -= PHYSICS.GRAVITY * delta;
     this.position.y += this.velocity.y * delta;
 
-    // Ground collision
     const groundY = this.collisions.getGroundHeight(this.position.x, this.position.z);
     if (this.position.y <= groundY) {
       this.position.y = groundY;
@@ -188,11 +187,9 @@ export class Player {
       this.isGrounded = true;
     }
 
-    // Move in XZ plane
     this.position.x += this.velocity.x * delta;
     this.position.z += this.velocity.z * delta;
 
-    // Solid obstacle collision resolution
     const resolved = this.collisions.resolveCircle(
       this.position.x,
       this.position.z,
@@ -204,7 +201,6 @@ export class Player {
 
     this.root.position.copy(this.position);
 
-    // Animate limbs
     const swing = Math.sin(this.walkCycle) * (move.sprint ? 0.85 : 0.5);
     this.leftArm.rotation.x = -swing;
     this.rightArm.rotation.x = swing;
@@ -227,7 +223,6 @@ export class Player {
     this.inVehicle = false;
     this.currentVehicle.isOccupiedByPlayer = false;
 
-    // Exit on the left side of the vehicle
     const exitYaw = this.currentVehicle.yaw;
     const sideX = -Math.cos(exitYaw) * (this.currentVehicle.model.width * 0.5 + 0.9);
     const sideZ = Math.sin(exitYaw) * (this.currentVehicle.model.width * 0.5 + 0.9);

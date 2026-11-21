@@ -1,14 +1,15 @@
-// Procedural canvas textures for Coral Vista surfaces
+// Procedural canvas textures for Art Déco facades, sidewalks, roads, and crosswalks
 
 import * as THREE from 'three';
+import { COLORS } from '../core/constants.js';
 
 export class TextureFactory {
   constructor() {
     this.cache = new Map();
   }
 
-  getBuildingTexture(theme = 'downtown', seed = 1) {
-    const key = `bldg_${theme}_${seed}`;
+  getArtDecoBuildingTexture(paletteHex, seed = 1) {
+    const key = `deco_${paletteHex}_${seed}`;
     if (this.cache.has(key)) return this.cache.get(key);
 
     const canvas = document.createElement('canvas');
@@ -16,36 +17,54 @@ export class TextureFactory {
     canvas.height = 512;
     const ctx = canvas.getContext('2d');
 
-    const baseColor = theme === 'downtown' ? '#1c242c' : '#c88c78';
-    ctx.fillStyle = baseColor;
+    // Base pastel facade
+    const colStr = '#' + paletteHex.toString(16).padStart(6, '0');
+    ctx.fillStyle = colStr;
     ctx.fillRect(0, 0, 256, 512);
 
-    const cols = 8;
-    const rows = 24;
-    const padX = 6;
-    const padY = 6;
+    // Art Déco vertical fluting / pilasters
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+    for (let x = 12; x < 256; x += 32) {
+      ctx.fillRect(x, 0, 10, 512);
+    }
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+    for (let x = 22; x < 256; x += 32) {
+      ctx.fillRect(x, 0, 4, 512);
+    }
+
+    // Window grid with warm sun reflections
+    const cols = 6;
+    const rows = 18;
+    const padX = 10;
+    const padY = 8;
     const winW = (256 - padX * (cols + 1)) / cols;
-    const winH = (512 - padY * (rows + 1)) / rows;
+    const winH = (512 - padY * (rows + 1) - 60) / rows;
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const x = padX + c * (winW + padX);
-        const y = padY + r * (winH + padY);
+        const y = 20 + padY + r * (winH + padY);
 
-        const isLit = (Math.sin(r * 12.3 + c * 33.7 + seed * 9.1) > 0.15);
-        if (isLit) {
-          const warmGlow = Math.sin(r + c + seed) > 0 ? '#ffe082' : '#ffab91';
-          ctx.fillStyle = warmGlow;
-        } else {
-          ctx.fillStyle = '#0f141a';
-        }
+        // Window glass tinted with sky and sunset reflection
+        const isLit = (Math.sin(r * 9.7 + c * 14.3 + seed * 7.1) > 0.1);
+        ctx.fillStyle = isLit ? '#ffeaa7' : '#2b5168';
         ctx.fillRect(x, y, winW, winH);
 
-        ctx.strokeStyle = 'rgba(0,0,0,0.4)';
-        ctx.lineWidth = 1;
+        // Crisp white window moulding
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
         ctx.strokeRect(x, y, winW, winH);
       }
     }
+
+    // Ground floor storefront marquee & neon strip
+    ctx.fillStyle = '#1a1f26';
+    ctx.fillRect(0, 440, 256, 72);
+
+    // Neon accent glow line
+    const neonColors = ['#00e5ff', '#ff007f', '#ffe600', '#00ff88'];
+    ctx.fillStyle = neonColors[seed % neonColors.length];
+    ctx.fillRect(10, 442, 236, 4);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.wrapS = THREE.RepeatWrapping;
@@ -55,7 +74,7 @@ export class TextureFactory {
   }
 
   getRoadTexture() {
-    const key = 'road_asphalt';
+    const key = 'road_asphalt_v2';
     if (this.cache.has(key)) return this.cache.get(key);
 
     const canvas = document.createElement('canvas');
@@ -63,30 +82,22 @@ export class TextureFactory {
     canvas.height = 512;
     const ctx = canvas.getContext('2d');
 
-    ctx.fillStyle = '#222327';
+    ctx.fillStyle = '#32343a';
     ctx.fillRect(0, 0, 512, 512);
 
-    // Subtle asphalt grain
-    for (let i = 0; i < 2000; i++) {
-      const rx = Math.random() * 512;
-      const ry = Math.random() * 512;
-      const g = Math.floor(Math.random() * 40 + 25);
-      ctx.fillStyle = `rgb(${g},${g},${g})`;
-      ctx.fillRect(rx, ry, 2, 2);
-    }
-
-    // Yellow center divider line
-    ctx.fillStyle = '#e6a122';
-    ctx.fillRect(253, 0, 6, 512);
+    // Yellow double center line
+    ctx.fillStyle = '#f1c40f';
+    ctx.fillRect(250, 0, 5, 512);
+    ctx.fillRect(258, 0, 5, 512);
 
     // Dashed white lane dividers
-    ctx.fillStyle = '#f0f0f0';
-    ctx.setLineDash([32, 24]);
+    ctx.fillStyle = '#ffffff';
+    ctx.setLineDash([36, 24]);
     ctx.lineWidth = 4;
-    ctx.strokeStyle = '#f0f0f0';
+    ctx.strokeStyle = '#ffffff';
     ctx.beginPath();
-    ctx.moveTo(128, 0); ctx.lineTo(128, 512);
-    ctx.moveTo(384, 0); ctx.lineTo(384, 512);
+    ctx.moveTo(125, 0); ctx.lineTo(125, 512);
+    ctx.moveTo(387, 0); ctx.lineTo(387, 512);
     ctx.stroke();
 
     const texture = new THREE.CanvasTexture(canvas);
@@ -97,7 +108,7 @@ export class TextureFactory {
   }
 
   getSidewalkTexture() {
-    const key = 'sidewalk_paver';
+    const key = 'sidewalk_light';
     if (this.cache.has(key)) return this.cache.get(key);
 
     const canvas = document.createElement('canvas');
@@ -105,10 +116,11 @@ export class TextureFactory {
     canvas.height = 128;
     const ctx = canvas.getContext('2d');
 
-    ctx.fillStyle = '#9e9992';
+    // Light clean sunlit concrete pavers
+    ctx.fillStyle = '#e4dfd5';
     ctx.fillRect(0, 0, 128, 128);
 
-    ctx.strokeStyle = 'rgba(40,35,30,0.35)';
+    ctx.strokeStyle = 'rgba(120, 115, 105, 0.35)';
     ctx.lineWidth = 2;
     ctx.strokeRect(2, 2, 60, 60);
     ctx.strokeRect(66, 2, 60, 60);
@@ -134,7 +146,6 @@ export class TextureFactory {
     ctx.fillStyle = colorHex;
     ctx.fillRect(0, 0, 256, 128);
 
-    // Corrugated steel ridges
     for (let x = 0; x < 256; x += 8) {
       ctx.fillStyle = 'rgba(0,0,0,0.22)';
       ctx.fillRect(x, 0, 3, 128);
@@ -142,9 +153,9 @@ export class TextureFactory {
       ctx.fillRect(x + 3, 0, 2, 128);
     }
 
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.font = 'bold 18px monospace';
-    ctx.fillText('LOS MANTA LOGISTICS', 18, 70);
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('LOS MANTA LOGISTICS', 20, 70);
 
     const texture = new THREE.CanvasTexture(canvas);
     this.cache.set(key, texture);

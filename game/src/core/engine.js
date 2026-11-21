@@ -19,13 +19,15 @@ export class Engine {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.15;
+    this.renderer.toneMappingExposure = 1.25;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(COLORS.FOG);
-    this.scene.fog = new THREE.FogExp2(COLORS.FOG, 0.0032);
+    // Do not set solid scene.background color so the SkyDome gradient sphere renders in full glory
+    this.scene.background = null;
+    // Linear fog: completely clear up to 140m, gentle warm haze on far horizon
+    this.scene.fog = new THREE.Fog(0xffd1b3, 150, 650);
 
-    this.camera = new THREE.PerspectiveCamera(65, this.width / this.height, 0.2, 800);
+    this.camera = new THREE.PerspectiveCamera(65, this.width / this.height, 0.2, 1000);
     this.camera.position.set(0, 10, 20);
 
     this.clock = new THREE.Clock();
