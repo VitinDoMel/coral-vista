@@ -1,134 +1,69 @@
-// Boot and the one loop: input is read every frame, the world advances in fixed 1/60 s steps
-// (several in a slow frame, none in a fast one), and the renderer paints what is there. The game
-// moves between four screens: title, play, paused and game over.
-//
-// ?seed=N fixes the falling pattern. ?shot=start|play|end (with &seed=N) stages that scene
-// instead of running the loop, paints it twice and sets window.__shotReady for a screenshot.
-import { BEST_KEY, LIVES, STEP } from './config.js';
-import { createRandom } from './random.js';
-import { createWorld, EVENT_HIT, EVENT_OVER } from './world.js';
-import { ACTION_CONFIRM, ACTION_PAUSE, createInput } from './input.js';
-import { createRenderer, SCREEN_OVER, SCREEN_PAUSED, SCREEN_PLAY, SCREEN_TITLE } from './render.js';
-import { stageShot } from './shots.js';
+// HEATWAVE: Coral Vista - Main game orchestrator
 
-/** The longest frame the loop catches up on; a longer stall (a hidden tab) is dropped, not replayed. */
-const MAX_FRAME = 0.25;
+import * as THREE from 'three';
+import { Engine } from './core/engine.js';
+import { InputManager } from './core/input.js';
+import { TextureFactory } from './world/textures.js';
+import { CollisionSystem } from './world/collisions.js';
+import { Environment } from './world/environment.js';
+import { CityBuilder } from './world/city.js';
+import { Player } from './player/player.js';
 
-const params = new URLSearchParams(window.location.search);
-const shot = params.get('shot');
-const seedParam = Number.parseInt(params.get('seed') ?? '', 10);
-const seed = Number.isInteger(seedParam) ? seedParam : Math.floor(Math.random() * 4294967296);
+class Game {
+  constructor() {
+    this.canvas = document.getElementById('webgl-canvas');
+    this.engine = new Engine(this.canvas);
+    this.input = new InputManager(this.canvas);
+    this.textures = new TextureFactory();
+    this.collisions = new CollisionSystem();
 
-const canvas = document.getElementById('game');
-const status = document.getElementById('status');
-const world = createWorld(createRandom(seed));
-const renderer = createRenderer(canvas);
-
-function readBest() {
-  try {
-    return Number.parseInt(window.localStorage.getItem(BEST_KEY) ?? '0', 10) || 0;
-  } catch {
-    return 0;
-  }
-}
-
-function saveBest(value) {
-  try {
-    window.localStorage.setItem(BEST_KEY, String(value));
-  } catch {
-    // Storage can be off (private windows): the best score then lasts this visit only.
-  }
-}
-
-function runShot(name) {
-  const scene = stageShot(name, world);
-  let painted = 0;
-  function paint() {
-    renderer.draw(world.state, scene.screen, scene.best);
-    painted += 1;
-    if (painted < 2) requestAnimationFrame(paint);
-    else window.__shotReady = true;
-  }
-  requestAnimationFrame(paint);
-}
-
-function runGame() {
-  const input = createInput(canvas);
-  let screen = SCREEN_TITLE;
-  let best = readBest();
-  let accumulator = 0;
-  let last = performance.now();
-
-  // Screen readers (and anyone watching the page's text) hear the screen changes and each hit.
-  function announce(message) {
-    status.textContent = message;
+    this.initWorld();
+    this.handleShotMode();
+    this.engine.start();
   }
 
-  function startGame() {
-    world.reset();
-    accumulator = 0;
-    screen = SCREEN_PLAY;
-    announce(`Playing. ${LIVES} lives.`);
-  }
+  initWorld() {
+    this.environment = new Environment(this.engine.scene);
+    this.city = new CityBuilder(this.engine.scene, this.collisions, this.textures);
+    this.city.build();
 
-  function endGame() {
-    screen = SCREEN_OVER;
-    if (world.state.score > best) {
-      best = world.state.score;
-      saveBest(best);
-    }
-    announce(`Game over. Score ${world.state.score}. Best ${best}.`);
-  }
+    this.player = new Player(this.engine.scene, this.collisions, this.engine.camera);
 
-  function handleActions() {
-    const actions = input.takeActions();
-    if (actions & ACTION_CONFIRM && (screen === SCREEN_TITLE || screen === SCREEN_OVER)) startGame();
-    else if (actions & ACTION_PAUSE && screen === SCREEN_PLAY) {
-      screen = SCREEN_PAUSED;
-      announce('Paused.');
-    } else if (actions & (ACTION_PAUSE | ACTION_CONFIRM) && screen === SCREEN_PAUSED) {
-      screen = SCREEN_PLAY;
-      announce('Playing.');
-    }
-  }
-
-  function step() {
-    if (screen === SCREEN_TITLE) {
-      world.step(STEP, 0, true);
-      return;
-    }
-    const events = world.step(STEP, input.direction(), false);
-    if (events & EVENT_OVER) endGame();
-    else if (events & EVENT_HIT) announce(world.state.lives === 1 ? 'Hit. 1 life left.' : `Hit. ${world.state.lives} lives left.`);
-  }
-
-  function frame(now) {
-    requestAnimationFrame(frame);
-    accumulator += Math.min((now - last) / 1000, MAX_FRAME);
-    last = now;
-    handleActions();
-    if (screen === SCREEN_TITLE || screen === SCREEN_PLAY) {
-      while (accumulator >= STEP && (screen === SCREEN_TITLE || screen === SCREEN_PLAY)) {
-        step();
-        accumulator -= STEP;
+    this.engine.addUpdatable({
+      update: (delta, time) => {
+        this.environment.update(delta, time);
+        this.player.update(delta, this.input);
+        this.environment.follow(this.player.position);
       }
-    } else {
-      accumulator = 0;
-    }
-    renderer.draw(world.state, screen, best);
+    });
   }
 
-  // Leaving the tab pauses a running game rather than letting blocks fall unseen.
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden && screen === SCREEN_PLAY) {
-      screen = SCREEN_PAUSED;
-      announce('Paused.');
-    }
-  });
+  handleShotMode() {
+    const params = new URLSearchParams(window.location.search);
+    const shot = params.get('shot');
+    if (!shot) return;
 
-  announce('Block Dodger. Press Space or click to start.');
-  requestAnimationFrame(frame);
+    // Deterministic staging for screenshot evaluation
+    if (shot === 'foot') {
+      this.player.position.set(-85, 0, 15);
+      this.player.yaw = 0.4;
+      this.player.pitch = 0.12;
+      this.player.root.position.copy(this.player.position);
+      this.player.root.rotation.y = -2.6;
+      this.engine.camera.position.set(-83.2, 1.8, 11.8);
+      this.engine.camera.lookAt(-85, 1.5, 15);
+      const crosshair = document.getElementById('crosshair');
+      if (crosshair) crosshair.style.display = 'block';
+    } else if (shot === 'title') {
+      this.engine.camera.position.set(-85, 45, 120);
+      this.engine.camera.lookAt(-40, 15, -40);
+    } else if (shot === 'map') {
+      this.engine.camera.position.set(0, 180, 0);
+      this.engine.camera.lookAt(0, 0, 0);
+    }
+  }
 }
 
-if (shot) runShot(shot);
-else runGame();
+window.addEventListener('DOMContentLoaded', () => {
+  new Game();
+});
