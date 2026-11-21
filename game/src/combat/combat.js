@@ -31,14 +31,14 @@ export class CombatSystem {
     this.scene.add(this.flashMesh);
   }
 
-  update(dt, player, wantedSystem, targetPool) {
+  update(dt, player, wantedSystem, targetPool, audio) {
     // Weapon switch with keys '1' and '2'
     if (this.input.wasJustPressed('Digit1')) this.currentWeapon = 'fists';
     if (this.input.wasJustPressed('Digit2')) this.currentWeapon = 'pistol';
 
     // Firing with left mouse button
     if (this.input.mouse.justDown) {
-      this.attack(player, wantedSystem, targetPool);
+      this.attack(player, wantedSystem, targetPool, audio);
     }
 
     // Decay muzzle flash
@@ -51,12 +51,16 @@ export class CombatSystem {
     }
   }
 
-  attack(player, wantedSystem, targetPool) {
+  attack(player, wantedSystem, targetPool, audio) {
     const w = this.weapons[this.currentWeapon];
 
     if (this.currentWeapon === 'pistol') {
       if (w.ammo <= 0) return;
       w.ammo--;
+
+      if (audio && audio.playGunshot) {
+        audio.playGunshot();
+      }
 
       // Muzzle flash at player chest/hand
       const sinY = Math.sin(player.yaw);

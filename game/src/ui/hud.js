@@ -34,6 +34,22 @@ export class HUD {
     if (missions.activeDialogue) {
       this._drawDialogue(ctx, w, h, missions.activeDialogue);
     }
+
+    // 5. Sun-Soaked Warm Vignette Post-Processing
+    this._drawWarmVignette(ctx, w, h);
+  }
+
+  _drawWarmVignette(ctx, w, h) {
+    ctx.save();
+    const rx = w * 0.5;
+    const ry = h * 0.5;
+    const grad = ctx.createRadialGradient(rx, ry, Math.min(rx, ry) * 0.65, rx, ry, Math.max(rx, ry));
+    grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    grad.addColorStop(0.7, 'rgba(255, 160, 90, 0.05)');
+    grad.addColorStop(1, 'rgba(15, 8, 4, 0.35)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
   }
 
   _drawTopRight(ctx, w, cash, stars, isFlashing, combat) {

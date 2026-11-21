@@ -19,6 +19,8 @@ import { MissionManager } from './missions/mission_manager.js';
 import { HUD } from './ui/hud.js';
 import { FullMapView } from './ui/map_view.js';
 import { MenuManager } from './ui/menus.js';
+import { FXManager } from './fx/particles.js';
+import { SynthAudio } from './audio/synth_audio.js';
 
 // Entry Point & Orchestrator for HEATWAVE: Coral Vista (R4)
 
@@ -49,6 +51,9 @@ window.addEventListener('DOMContentLoaded', () => {
   const wanted = new WantedSystem();
   const police = new PoliceManager(engine.scene, collisions, vehicleManager.factory, prng);
   const respawn = new RespawnSystem(player, wanted, vehicleManager);
+
+  const fx = new FXManager(engine.scene);
+  const audio = new SynthAudio();
 
   const missions = new MissionManager();
   const hud = new HUD(hudCanvas);
@@ -124,6 +129,12 @@ window.addEventListener('DOMContentLoaded', () => {
     engine.camera.position.set(62, 2.2, 191);
     engine.camera.lookAt(new THREE.Vector3(42, 1.1, 196));
     environment.updateFollow(new THREE.Vector3(48, 0, 196));
+
+    // Dynamic Tire Smoke & Skidmarks
+    fx.addSkidmark(new THREE.Vector3(44, 0.1, 196), Math.PI / 2);
+    fx.addSkidmark(new THREE.Vector3(38, 0.1, 196), Math.PI / 2);
+    fx.emitSmoke(new THREE.Vector3(46, 0.4, 196), new THREE.Vector3(0, 0.6, 0), true);
+    fx.emitSmoke(new THREE.Vector3(45, 0.4, 196.5), new THREE.Vector3(0, 0.8, 0), true);
   } else if (shot === 'title') {
     // Aerial panoramic view of the sun-soaked city
     engine.camera.position.set(-60, 52, 110);
@@ -171,10 +182,17 @@ window.addEventListener('DOMContentLoaded', () => {
         pedestrians: pedestrianManager.pedestrians,
         policeOfficers: police.officers
       };
-      combat.update(dt, player, wanted, targetPool);
+      combat.update(dt, player, wanted, targetPool, audio);
       police.update(dt, player.position, wanted.stars);
       respawn.update(dt);
       missions.update(dt, player, wanted);
+      fx.update(dt, vehicleManager.playerVehicle);
+
+      if (vehicleManager.playerVehicle) {
+        const spdFrac = Math.min(1.0, Math.abs(vehicleManager.playerVehicle.controller.speed) / 30.0);
+        audio.updateEngine(spdFrac);
+      }
+      audio.updateSiren(wanted.stars > 0);
 
       trafficManager.update(dt, player.position, vehicleManager.playerVehicle);
       pedestrianManager.update(dt, player.position);
