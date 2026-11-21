@@ -69,7 +69,14 @@ export class VehicleManager {
     return bestVehicle;
   }
 
-  tryTogglePlayerVehicle(player, input, cameraController, trafficManager, pedestrianManager) {
+  tryTogglePlayerVehicle(
+    player,
+    input,
+    cameraController,
+    trafficManager,
+    pedestrianManager,
+    policeManager
+  ) {
     if (!input.consumeKeyPress('KeyF')) return;
 
     // Exit current vehicle
@@ -111,6 +118,9 @@ export class VehicleManager {
           .add(targetCar.getRightXZ().multiplyScalar(-1.8));
         pedestrianManager.spawnEjectedDriver(ejectPos, targetCar.position);
       }
+      if (policeManager) {
+        policeManager.reportCrime('carjack', 1);
+      }
     }
 
     targetCar.driver = 'player';
@@ -120,13 +130,22 @@ export class VehicleManager {
     cameraController.alignBehindVehicle(targetCar);
   }
 
-  update(dt, input, player, cameraController, trafficManager, pedestrianManager) {
+  update(
+    dt,
+    input,
+    player,
+    cameraController,
+    trafficManager,
+    pedestrianManager,
+    policeManager
+  ) {
     this.tryTogglePlayerVehicle(
       player,
       input,
       cameraController,
       trafficManager,
-      pedestrianManager
+      pedestrianManager,
+      policeManager
     );
 
     for (const v of this.vehicles) {

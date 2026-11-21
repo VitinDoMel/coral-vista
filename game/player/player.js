@@ -29,6 +29,16 @@ export class PlayerController {
     this.scene.add(this.mesh);
   }
 
+  takeDamage(amount) {
+    let remaining = Math.max(0, amount);
+    if (this.armor > 0) {
+      const absorbed = Math.min(this.armor, remaining * 0.65);
+      this.armor = Math.max(0, this.armor - absorbed);
+      remaining -= absorbed;
+    }
+    this.health = Math.max(0, this.health - remaining);
+  }
+
   _buildCharacterMesh() {
     const root = new THREE.Group();
     root.name = 'RafaSol';
