@@ -86,8 +86,8 @@ export function setupSkyAndLighting(scene) {
   const sunLight = new THREE.DirectionalLight(0xfff1d8, 2.45);
   sunLight.position.set(185, 165, -240);
   sunLight.castShadow = true;
-  sunLight.shadow.mapSize.width = 2048;
-  sunLight.shadow.mapSize.height = 2048;
+  sunLight.shadow.mapSize.width = 1024;
+  sunLight.shadow.mapSize.height = 1024;
   sunLight.shadow.camera.near = 20;
   sunLight.shadow.camera.far = 680;
   const d = 220;

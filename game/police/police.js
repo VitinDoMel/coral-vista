@@ -243,23 +243,23 @@ export class PoliceCruiser {
     // Alternates strictly every 0.25 s
     const phase = Math.floor(this.sirenTimer / 0.25) % 2;
     if (phase === 0) {
-      this.redLightMat.color.setHex(0xff1824);
-      this.redLightMat.emissive.setHex(0xff0a18);
-      this.redLightMat.emissiveIntensity = 1.85;
-      this.blueLightMat.color.setHex(0x163d7a);
-      this.blueLightMat.emissive.setHex(0x0b2a5e);
-      this.blueLightMat.emissiveIntensity = 0.22;
+      this.redLightMat.color.setHex(0xff2030);
+      this.redLightMat.emissive.setHex(0xff1020);
+      this.redLightMat.emissiveIntensity = 2.2;
+      this.blueLightMat.color.setHex(0x1f62c4);
+      this.blueLightMat.emissive.setHex(0x124799);
+      this.blueLightMat.emissiveIntensity = 0.65;
       this.redLightBox.scale.set(1.08, 1.1, 1.08);
       this.blueLightBox.scale.set(1.0, 1.0, 1.0);
       this.sirenPointLight.color.setHex(0xff1824);
       this.sirenPointLight.position.x = -0.38;
     } else {
-      this.redLightMat.color.setHex(0x6e1218);
-      this.redLightMat.emissive.setHex(0x4a080e);
-      this.redLightMat.emissiveIntensity = 0.22;
-      this.blueLightMat.color.setHex(0x1c7eff);
-      this.blueLightMat.emissive.setHex(0x126bff);
-      this.blueLightMat.emissiveIntensity = 1.85;
+      this.redLightMat.color.setHex(0xb31b26);
+      this.redLightMat.emissive.setHex(0x8c101a);
+      this.redLightMat.emissiveIntensity = 0.65;
+      this.blueLightMat.color.setHex(0x268aff);
+      this.blueLightMat.emissive.setHex(0x1874ff);
+      this.blueLightMat.emissiveIntensity = 2.2;
       this.redLightBox.scale.set(1.0, 1.0, 1.0);
       this.blueLightBox.scale.set(1.08, 1.1, 1.08);
       this.sirenPointLight.color.setHex(0x1c7eff);

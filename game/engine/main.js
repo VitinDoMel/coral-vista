@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { InputController } from './input.js';
 import { ThirdPersonCamera } from './camera.js';
+import { SaveStorage } from './storage.js';
+import { applyDeterministicShot } from './shots.js';
 import { CollisionWorld } from '../world/collision.js';
 import { setupSkyAndLighting, buildCoralVistaCity } from '../world/city.js';
 import { PlayerController } from '../player/player.js';
@@ -9,12 +11,16 @@ import { VehicleManager } from '../vehicles/vehicleManager.js';
 import { TrafficManager } from '../traffic/traffic.js';
 import { PedestrianManager } from '../peds/pedestrians.js';
 import { PoliceManager } from '../police/police.js';
+import { MissionManager } from '../missions/missions.js';
+import { UIManager } from '../ui/hud.js';
 
 class CoralVistaEngine {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
+    this.uiRoot = document.getElementById('ui-root');
     this.params = new URLSearchParams(window.location.search);
     this.seed = Number(this.params.get('seed') || 1) || 1;
+    this.shotName = this.params.get('shot') || null;
 
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
@@ -50,59 +56,113 @@ class CoralVistaEngine {
     this.trafficManager = new TrafficManager(this.scene, this.collisionWorld, this.seed);
     this.pedestrianManager = new PedestrianManager(this.scene, this.collisionWorld, this.seed);
     this.policeManager = new PoliceManager(this.scene, this.collisionWorld);
+    this.missionManager = new MissionManager(
+      this.scene,
+      this.player,
+      this.vehicleManager,
+      this.policeManager
+    );
 
-    // Orient camera initially looking north-northeast down Seabreeze Boulevard
-    // showing palm trees, pastel Art Deco hotels, painted road stripes, beach & turquoise sea
+    this.uiManager = new UIManager(this.uiRoot, {
+      onNewGame: () => this.startNewGame(),
+      onContinueGame: () => this.loadSavedGame(),
+      onSaveGame: () => this.saveCurrentGame()
+    });
+
     this.cameraController.setAngles(0.28, 0.14);
     this.cameraController.updateForFootTarget(this.player.position, 0.016, true);
 
-    if (this.params.get('test_police') === '1') {
-      this._setupPolicePreview();
+    if (this.shotName) {
+      applyDeterministicShot(this, this.shotName);
     }
 
+    this.uiManager.update(this.buildUIState());
+    this.shotFrameCount = 0;
     this.lastTime = performance.now();
     this._bindResize();
   }
 
-  _setupPolicePreview() {
-    this.policeManager.setWantedStars(4, this.player.position);
-    const c0 = this.policeManager.cruisers[0];
-    if (c0) {
-      c0.position.set(118.2, 0, 12.5);
-      c0.heading = 2.65;
-      c0.sirenTimer = 0.05;
-      c0.updateSirenLights(0);
-      c0.mesh.position.copy(c0.position);
-      c0.mesh.rotation.y = c0.heading;
-    }
-    const c1 = this.policeManager.cruisers[1];
-    if (c1) {
-      c1.position.set(123.8, 0, 8.0);
-      c1.heading = -2.45;
-      c1.sirenTimer = 0.30;
-      c1.updateSirenLights(0);
-      c1.mesh.position.copy(c1.position);
-      c1.mesh.rotation.y = c1.heading;
-    }
-    if (this.policeManager.cruisers[2]) {
-      this.policeManager.cruisers[2].position.set(119.5, 0, -2.0);
-      this.policeManager.cruisers[2].heading = 3.0;
-      this.policeManager.cruisers[2].mesh.position.copy(this.policeManager.cruisers[2].position);
-      this.policeManager.cruisers[2].mesh.rotation.y = 3.0;
-    }
-    if (this.policeManager.officers[0]) {
-      this.policeManager.officers[0].position.set(115.6, 0.18, 14.5);
-      this.policeManager.officers[0].mesh.position.copy(this.policeManager.officers[0].position);
-    }
-    if (this.policeManager.officers[1]) {
-      this.policeManager.officers[1].position.set(126.2, 0.18, 10.5);
-      this.policeManager.officers[1].mesh.position.copy(this.policeManager.officers[1].position);
-    }
-    this.policeManager.helicopter.placeAndAimAt(
-      new THREE.Vector3(114.5, 11.2, -8.0),
-      new THREE.Vector3(120.5, 0.045, 6.0),
-      2.85
+  startNewGame() {
+    this.cameraController.overrideActive = false;
+    this.player.position.set(124.5, 0.18, 28);
+    this.player.health = 100;
+    this.player.armor = 50;
+    this.player.money = 1250;
+    this.policeManager.setWantedStars(0);
+    this.missionManager.startMission(0, true);
+  }
+
+  saveCurrentGame() {
+    SaveStorage.saveGame({
+      missionIndex: this.missionManager.currentMissionIndex,
+      money: this.player.money,
+      health: this.player.health,
+      armor: this.player.armor,
+      playerX: this.player.position.x,
+      playerZ: this.player.position.z,
+      completedMissions: this.missionManager.currentMissionIndex
+    });
+    this.missionManager.showNotification(
+      'JOGO SALVO',
+      'Progresso gravado no armazenamento local (localStorage)'
     );
+  }
+
+  loadSavedGame() {
+    this.cameraController.overrideActive = false;
+    const data = SaveStorage.loadGame();
+    if (!data) {
+      this.startNewGame();
+      return;
+    }
+    this.player.position.set(data.playerX ?? 124.5, 0.18, data.playerZ ?? 28);
+    this.player.money = data.money ?? 1250;
+    this.player.health = data.health ?? 100;
+    this.player.armor = data.armor ?? 50;
+    this.missionManager.startMission(data.missionIndex ?? 0, true);
+    this.missionManager.showNotification('PROGRESSO CARREGADO', 'Sessão restaurada com sucesso');
+  }
+
+  buildUIState() {
+    const m = this.missionManager.getCurrentMission();
+    const objPos = this.missionManager.getActiveObjectivePosition();
+    const dist = Math.hypot(
+      this.player.position.x - objPos.x,
+      this.player.position.z - objPos.z
+    );
+
+    const w = this.combat.weapons[this.combat.currentWeapon];
+    const weaponText =
+      w.id === 'pistol'
+        ? `CORAL 9MM • ${w.ammoInClip} / ${w.reserveAmmo}`
+        : 'PUNHOS • CORPO A CORPO';
+
+    const inVehicle = Boolean(this.vehicleManager.activeVehicle);
+
+    return {
+      missionTitle: m ? `MISSÃO ${m.id}/5 — ${m.title.toUpperCase()}` : 'CORAL VISTA',
+      objectiveText: this.missionManager.getActiveObjectiveText(),
+      objectiveDistance: dist,
+      objectivePos: objPos,
+      currentMissionIndex: this.missionManager.currentMissionIndex,
+      completedMissions:
+        this.shotName === 'map' ? 2 : this.missionManager.currentMissionIndex,
+      money: this.player.money,
+      wantedStars: this.policeManager.wantedStars,
+      weaponText,
+      health: this.player.health,
+      armor: this.player.armor,
+      activeVehicle: this.vehicleManager.activeVehicle,
+      showCrosshair: !inVehicle && this.combat.currentWeapon === 'pistol',
+      activeDialogue: this.missionManager.activeDialogue,
+      notification: this.missionManager.notification,
+      respawnNotice: this.policeManager.lastRespawnNotice,
+      interactionPrompt: this.missionManager.getNearbyInteractionPrompt(),
+      playerPos: this.player.position,
+      cameraYaw: this.cameraController.yaw,
+      trafficEntries: this.trafficManager.entries,
+      policeCruisers: this.policeManager.cruisers
+    };
   }
 
   _bindResize() {
@@ -112,43 +172,74 @@ class CoralVistaEngine {
       this.camera.aspect = w / h;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(w, h);
+      if (this.shotName) {
+        this.uiManager.update(this.buildUIState());
+        this.renderer.render(this.scene, this.camera);
+      }
     });
   }
 
   step(dt) {
-    const mouseDelta = this.input.consumeMouseDelta();
-    this.cameraController.applyMouseDelta(mouseDelta.dx, mouseDelta.dy);
-
-    this.vehicleManager.update(
-      dt,
-      this.input,
-      this.player,
-      this.cameraController,
-      this.trafficManager,
-      this.pedestrianManager,
-      this.policeManager
-    );
-
-    if (this.vehicleManager.activeVehicle) {
-      this.cameraController.updateForVehicleTarget(this.vehicleManager.activeVehicle, dt);
-    } else {
-      this.player.update(dt, this.input, this.cameraController);
-      this.cameraController.updateForFootTarget(this.player.position, dt);
+    if (this.shotName) {
+      if (this.shotFrameCount < 2) {
+        applyDeterministicShot(this, this.shotName);
+        this.uiManager.update(this.buildUIState());
+        if (this.shotName !== 'map') {
+          this.renderer.render(this.scene, this.camera);
+        }
+        this.shotFrameCount++;
+      }
+      this.input.endFrame();
+      return;
     }
 
-    this.combat.update(dt, this.input, this.cameraController, {
-      vehicleManager: this.vehicleManager,
-      pedestrianManager: this.pedestrianManager,
-      policeManager: this.policeManager
-    });
-
-    this.policeManager.update(dt, this.player, this.vehicleManager);
-    if (this.params.get('test_police') === '1') {
-      this._setupPolicePreview();
+    // Global UI hotkeys: M (Big Map) / Escape (Pause)
+    if (this.input.consumeKeyPress('KeyM') && this.uiManager.mode !== 'title') {
+      const nextMode = this.uiManager.mode === 'map' ? 'gameplay' : 'map';
+      this.uiManager.setMode(nextMode, this.buildUIState());
     }
-    this.trafficManager.update(dt, this.player.position, this.vehicleManager.activeVehicle);
-    this.pedestrianManager.update(dt);
+    if (this.input.consumeKeyPress('Escape') && this.uiManager.mode !== 'title') {
+      const nextMode =
+        this.uiManager.mode === 'paused' || this.uiManager.mode === 'map'
+          ? 'gameplay'
+          : 'paused';
+      this.uiManager.setMode(nextMode, this.buildUIState());
+    }
 
+    if (this.uiManager.mode === 'gameplay') {
+      const mouseDelta = this.input.consumeMouseDelta();
+      this.cameraController.applyMouseDelta(mouseDelta.dx, mouseDelta.dy);
+
+      this.vehicleManager.update(
+        dt,
+        this.input,
+        this.player,
+        this.cameraController,
+        this.trafficManager,
+        this.pedestrianManager,
+        this.policeManager
+      );
+
+      if (this.vehicleManager.activeVehicle) {
+        this.cameraController.updateForVehicleTarget(this.vehicleManager.activeVehicle, dt);
+      } else {
+        this.player.update(dt, this.input, this.cameraController);
+        this.cameraController.updateForFootTarget(this.player.position, dt);
+      }
+
+      this.combat.update(dt, this.input, this.cameraController, {
+        vehicleManager: this.vehicleManager,
+        pedestrianManager: this.pedestrianManager,
+        policeManager: this.policeManager
+      });
+
+      this.policeManager.update(dt, this.player, this.vehicleManager);
+      this.missionManager.update(dt, this.input, this.combat);
+      this.trafficManager.update(dt, this.player.position, this.vehicleManager.activeVehicle);
+      this.pedestrianManager.update(dt);
+    }
+
+    this.uiManager.update(this.buildUIState());
     this.renderer.render(this.scene, this.camera);
     this.input.endFrame();
   }
@@ -158,6 +249,7 @@ class CoralVistaEngine {
       const dt = Math.min((now - this.lastTime) / 1000, 0.05);
       this.lastTime = now;
       this.step(dt);
+      if (this.shotName && this.shotFrameCount >= 2) return;
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
