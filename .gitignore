@@ -1,0 +1,5 @@
+*-kit/
+out/
+node_modules/
+*.tgz
+# build/test outputs
