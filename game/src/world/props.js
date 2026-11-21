@@ -63,7 +63,7 @@ export class PropsFactory {
       curZ += curveDirZ * i * 0.5;
     }
 
-    // Crown: 9 leafy fan blades, radiating outward and drooping at tips (NO CONES, NO BLACK SPIKES!)
+    // Crown: 9 leafy fan blades, large realistic canopy (~3x bigger, 4.8m long drooping fronds)
     const numLeaves = 9;
     const crown = new THREE.Group();
     crown.position.set(curX, curY - 0.2, curZ);
@@ -73,27 +73,35 @@ export class PropsFactory {
       const leafGroup = new THREE.Group();
       leafGroup.rotation.y = angle;
 
-      // Leaf constructed of 3 cascading arched quads
-      const leafLength = prng ? prng.range(3.8, 4.6) : 4.2;
-      const leafWidth = 0.85;
+      const leafLength = prng ? prng.range(4.5, 5.2) : 4.8;
+      const leafWidth = 1.25;
 
-      // Base section (angles upward)
+      // Base section (angles outward and slightly up)
       const g1 = new THREE.PlaneGeometry(leafWidth, leafLength * 0.45);
       g1.translate(0, leafLength * 0.225, 0);
       const m1 = new THREE.Mesh(g1, this.leafMatTop);
-      m1.rotation.x = -Math.PI * 0.28;
+      m1.rotation.x = -Math.PI * 0.32;
       m1.castShadow = true;
 
-      // Drooping tip section (folds downward)
-      const g2 = new THREE.PlaneGeometry(leafWidth * 0.75, leafLength * 0.55);
-      g2.translate(0, leafLength * 0.275, 0);
-      const m2 = new THREE.Mesh(g2, this.leafMatBot);
-      m2.position.set(0, Math.cos(Math.PI * 0.28) * leafLength * 0.45, Math.sin(Math.PI * 0.28) * leafLength * 0.45);
-      m2.rotation.x = -Math.PI * 0.55;
+      // Mid-droop section
+      const g2 = new THREE.PlaneGeometry(leafWidth * 0.85, leafLength * 0.4);
+      g2.translate(0, leafLength * 0.2, 0);
+      const m2 = new THREE.Mesh(g2, this.leafMatTop);
+      m2.position.set(0, Math.cos(Math.PI * 0.32) * leafLength * 0.45, Math.sin(Math.PI * 0.32) * leafLength * 0.45);
+      m2.rotation.x = -Math.PI * 0.58;
       m2.castShadow = true;
+
+      // Tip drooping down
+      const g3 = new THREE.PlaneGeometry(leafWidth * 0.6, leafLength * 0.35);
+      g3.translate(0, leafLength * 0.175, 0);
+      const m3 = new THREE.Mesh(g3, this.leafMatBot);
+      m3.position.set(0, m2.position.y + Math.cos(Math.PI * 0.58) * leafLength * 0.4, m2.position.z + Math.sin(Math.PI * 0.58) * leafLength * 0.4);
+      m3.rotation.x = -Math.PI * 0.78;
+      m3.castShadow = true;
 
       leafGroup.add(m1);
       leafGroup.add(m2);
+      leafGroup.add(m3);
       crown.add(leafGroup);
     }
 

@@ -152,34 +152,20 @@ export class PoliceManager {
     this.mainRotor.position.set(0, 1.2, 0);
     group.add(this.mainRotor);
 
-    // Downward Searchlight / Spotlight (Holofote)
-    const spotConeGeo = new THREE.ConeGeometry(8.5, 28, 16, 1, true);
-    spotConeGeo.rotateX(Math.PI);
-    const spotConeMat = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.22,
-      side: THREE.DoubleSide,
-      depthWrite: false
-    });
-    const spotCone = new THREE.Mesh(spotConeGeo, spotConeMat);
-    spotCone.position.set(0, -14, 0);
-    group.add(spotCone);
-
-    // Ground Spotlight Disc
-    const discGeo = new THREE.CircleGeometry(7.0, 20);
+    // Downward Searchlight / Spotlight (Holofote) Ground Disc
+    const discGeo = new THREE.CircleGeometry(6.5, 24);
     discGeo.rotateX(-Math.PI / 2);
     const discMat = new THREE.MeshBasicMaterial({
       color: 0xfffcd0,
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.45,
       depthWrite: false
     });
     this.spotDisc = new THREE.Mesh(discGeo, discMat);
     this.spotDisc.position.y = 0.32;
     this.scene.add(this.spotDisc);
 
-    group.position.set(20, 32, 190);
+    group.position.set(36, 13.5, 194);
     this.scene.add(group);
     this.helicopter = group;
   }

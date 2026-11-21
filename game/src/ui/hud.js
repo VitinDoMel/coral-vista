@@ -59,14 +59,14 @@ export class HUD {
     ctx.font = 'bold 28px "Segoe UI", Arial, sans-serif';
     ctx.textAlign = 'right';
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-    ctx.fillText(`$${cash.toLocaleString()}`, w - 34, 46);
+    ctx.fillText(`$${cash.toLocaleString()}`, w - 34, 40);
     ctx.fillStyle = '#2ecc71';
-    ctx.fillText(`$${cash.toLocaleString()}`, w - 36, 44);
+    ctx.fillText(`$${cash.toLocaleString()}`, w - 36, 38);
 
-    // 5 Wanted Stars
-    const starY = 62;
+    // 5 Wanted Stars: Dedicated line 32px below cash (y = 70)
+    const starY = 70;
     for (let i = 0; i < 5; i++) {
-      const starX = w - 160 + i * 26;
+      const starX = w - 162 + i * 26;
       const isLit = (i < stars);
       const flashHide = isFlashing && Math.floor(Date.now() / 250) % 2 === 0;
 
@@ -80,12 +80,12 @@ export class HUD {
       }
     }
 
-    // Current Weapon and Ammo
+    // Current Weapon and Ammo: 32px below stars (y = 102)
     const wpn = combat.weapons[combat.currentWeapon];
     ctx.font = 'bold 15px "Segoe UI", Arial, sans-serif';
     ctx.fillStyle = '#ffffff';
     const ammoStr = (wpn.ammo === Infinity) ? '∞' : `${wpn.ammo}`;
-    ctx.fillText(`${wpn.name.toUpperCase()}  [ ${ammoStr} ]`, w - 36, starY + 28);
+    ctx.fillText(`${wpn.name.toUpperCase()}  [ ${ammoStr} ]`, w - 36, 102);
 
     ctx.restore();
   }
@@ -101,25 +101,57 @@ export class HUD {
     ctx.save();
     ctx.beginPath();
     ctx.arc(mmX, mmY, mmR, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(18, 22, 28, 0.88)';
+    ctx.fillStyle = '#111722';
     ctx.fill();
     ctx.clip();
 
-    // Radar Grid & Streets
-    ctx.strokeStyle = 'rgba(80, 95, 115, 0.5)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(mmX - mmR, mmY);
-    ctx.lineTo(mmX + mmR, mmY);
-    ctx.moveTo(mmX, mmY - mmR);
-    ctx.lineTo(mmX, mmY + mmR);
-    ctx.stroke();
+    // Local Map Drawing (North-Up GPS view)
+    const px = player.position ? player.position.x : 0;
+    const pz = player.position ? player.position.z : 0;
+    const scale = 1.1; // 1.1 pixels per meter
 
-    // Mission target blip on radar
+    // 1. Sea & Beach if visible in minimap radius
+    // Beach starts at z = 215, Sea at z = 225
+    const beachSy = mmY + (215 - pz) * scale;
+    const seaSy = mmY + (225 - pz) * scale;
+    if (beachSy < mmY + mmR) {
+      ctx.fillStyle = '#d4af37'; // Golden sand beach
+      ctx.fillRect(mmX - mmR, Math.max(mmY - mmR, beachSy), mmR * 2, mmR * 2);
+    }
+    if (seaSy < mmY + mmR) {
+      ctx.fillStyle = '#1fb5c9'; // Turquoise sea
+      ctx.fillRect(mmX - mmR, Math.max(mmY - mmR, seaSy), mmR * 2, mmR * 2);
+    }
+
+    // 2. City Road Grid Lines
+    ctx.strokeStyle = '#4a5568';
+    ctx.lineWidth = 7;
+    // Seabreeze Blvd and EW avenues
+    [-200, -100, 0, 100, 200].forEach(z => {
+      const ry = mmY + (z - pz) * scale;
+      if (ry >= mmY - mmR - 10 && ry <= mmY + mmR + 10) {
+        ctx.beginPath();
+        ctx.moveTo(mmX - mmR, ry);
+        ctx.lineTo(mmX + mmR, ry);
+        ctx.stroke();
+      }
+    });
+    // N-S Streets
+    [-200, -100, 0, 100, 200].forEach(x => {
+      const rx = mmX + (x - px) * scale;
+      if (rx >= mmX - mmR - 10 && rx <= mmX + mmR + 10) {
+        ctx.beginPath();
+        ctx.moveTo(rx, mmY - mmR);
+        ctx.lineTo(rx, mmY + mmR);
+        ctx.stroke();
+      }
+    });
+
+    // 3. Mission target blip on radar
     const m = missions.getCurrentMission();
     if (m && m.targetPos) {
-      const relX = (m.targetPos.x - player.position.x) * 0.45;
-      const relZ = (m.targetPos.z - player.position.z) * 0.45;
+      const relX = (m.targetPos.x - px) * scale;
+      const relZ = (m.targetPos.z - pz) * scale;
       const dist = Math.hypot(relX, relZ);
       const clampR = Math.min(dist, mmR - 8);
       const blipX = mmX + (relX / (dist || 1)) * clampR;
@@ -134,7 +166,7 @@ export class HUD {
       ctx.stroke();
     }
 
-    // Player Direction Arrow
+    // 4. Player Direction Arrow (Centered, rotating with player yaw)
     ctx.save();
     ctx.translate(mmX, mmY);
     ctx.rotate(player.yaw);
@@ -146,6 +178,9 @@ export class HUD {
     ctx.lineTo(-6, 7);
     ctx.closePath();
     ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    ctx.stroke();
     ctx.restore();
 
     ctx.restore(); // end clip

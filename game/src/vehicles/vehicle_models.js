@@ -251,22 +251,22 @@ export class VehicleFactory {
     root.add(roof);
 
     // High-Intensity CVPD Lightbar (Red Left, Blue Right, Chrome Center)
-    const barBaseGeo = new THREE.BoxGeometry(1.25, 0.1, 0.32);
+    const barBaseGeo = new THREE.BoxGeometry(1.4, 0.1, 0.38);
     const barBase = new THREE.Mesh(barBaseGeo, this.chromeMat);
     barBase.position.set(0, 1.42, -0.15);
     root.add(barBase);
 
-    const redLightGeo = new THREE.BoxGeometry(0.5, 0.12, 0.28);
-    const redLightMat = new THREE.MeshBasicMaterial({ color: 0xff1e27 });
+    const redLightGeo = new THREE.BoxGeometry(0.65, 0.22, 0.35);
+    const redLightMat = new THREE.MeshBasicMaterial({ color: 0xff0022 });
     const redLight = new THREE.Mesh(redLightGeo, redLightMat);
-    redLight.position.set(-0.35, 1.48, -0.15);
+    redLight.position.set(-0.38, 1.50, -0.15);
     root.add(redLight);
     root.userData.redLight = redLight;
 
-    const blueLightGeo = new THREE.BoxGeometry(0.5, 0.12, 0.28);
+    const blueLightGeo = new THREE.BoxGeometry(0.65, 0.22, 0.35);
     const blueLightMat = new THREE.MeshBasicMaterial({ color: 0x0077ff });
     const blueLight = new THREE.Mesh(blueLightGeo, blueLightMat);
-    blueLight.position.set(0.35, 1.48, -0.15);
+    blueLight.position.set(0.38, 1.50, -0.15);
     root.add(blueLight);
     root.userData.blueLight = blueLight;
 

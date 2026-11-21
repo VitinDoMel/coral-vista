@@ -36,8 +36,24 @@ export class City {
       roughness: 0.7
     });
 
+    const setupRoadUV = (geo, lenMeters, isAlongX) => {
+      const uv = geo.attributes.uv;
+      const repeats = lenMeters / 12;
+      for (let i = 0; i < uv.count; i++) {
+        const u = uv.getX(i);
+        const v = uv.getY(i);
+        if (isAlongX) {
+          uv.setXY(i, v, u * repeats);
+        } else {
+          uv.setXY(i, u, v * repeats);
+        }
+      }
+      uv.needsUpdate = true;
+    };
+
     // 1. Seabreeze Boulevard (East-West coastal thoroughfare at Z = 200)
     const sbGeo = new THREE.PlaneGeometry(640, 22);
+    setupRoadUV(sbGeo, 640, true);
     const sbMesh = new THREE.Mesh(sbGeo, roadMat);
     sbMesh.rotation.x = -Math.PI / 2;
     sbMesh.position.set(0, 0.08, 200);
@@ -49,6 +65,7 @@ export class City {
     const zAvenues = [100, 0, -100, -200];
     for (let z of zAvenues) {
       const geo = new THREE.PlaneGeometry(560, 18);
+      setupRoadUV(geo, 560, true);
       const m = new THREE.Mesh(geo, roadMat);
       m.rotation.x = -Math.PI / 2;
       m.position.set(0, 0.08, z);
@@ -61,6 +78,7 @@ export class City {
     const xStreets = [-200, -100, 0, 100, 200];
     for (let x of xStreets) {
       const geo = new THREE.PlaneGeometry(16, 420);
+      setupRoadUV(geo, 420, false);
       const m = new THREE.Mesh(geo, roadMat);
       m.rotation.x = -Math.PI / 2;
       m.position.set(x, 0.082, 0);

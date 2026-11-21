@@ -27,13 +27,16 @@ export class FullMapView {
     const toScreenX = (wx) => mapLeft + ((wx + 340) / 680) * mapW;
     const toScreenY = (wz) => mapTop + ((wz + 340) / 680) * mapH;
 
-    // 1. Water Ocean and Bay Background
-    ctx.fillStyle = '#143642'; // Deep ocean
+    // 1. Land Base Background (Dark charcoal city ground, NOT all turquoise)
+    ctx.fillStyle = '#1a202c'; // Dark slate charcoal terra
     ctx.fillRect(mapLeft, mapTop, mapW, mapH);
 
-    // Coral Vista Coastline & Bay Water (#1fb5c9)
-    ctx.fillStyle = '#1a535c';
-    ctx.fillRect(mapLeft, mapTop + mapH * 0.65, mapW, mapH * 0.35);
+    // Ocean and Bay Water only in South/East coastal waters (Z > 220)
+    const seaScreenY = toScreenY(225);
+    ctx.fillStyle = '#143642'; // Deep water
+    ctx.fillRect(mapLeft, seaScreenY, mapW, mapTop + mapH - seaScreenY);
+    ctx.fillStyle = '#1fb5c9'; // Turquoise coastal surf
+    ctx.fillRect(mapLeft, seaScreenY, mapW, 20);
 
     // 2. Distinctly Colored District Zones
     const districts = [
@@ -115,9 +118,9 @@ export class FullMapView {
     const missionPills = [
       { id: 1, name: '1. Repossession', x: 24, z: 194, pillOffX: 18, pillOffY: -14 },
       { id: 2, name: '2. Heat Courier', x: 0, z: 40, pillOffX: 18, pillOffY: -14 },
-      { id: 3, name: '3. Takedown', x: 240, z: -170, pillOffX: -130, pillOffY: -22 },
+      { id: 3, name: '3. Takedown', x: 240, z: -170, pillOffX: -130, pillOffY: 28 },
       { id: 4, name: '4. Port Ambush', x: -250, z: -220, pillOffX: 18, pillOffY: 16 },
-      { id: 5, name: '5. Final Escape', x: 310, z: -230, pillOffX: -125, pillOffY: 18 }
+      { id: 5, name: '5. Final Escape', x: 310, z: -230, pillOffX: -130, pillOffY: -28 }
     ];
 
     for (let mp of missionPills) {
@@ -156,7 +159,7 @@ export class FullMapView {
       { name: '★ CVPD Precinct', color: '#2980b9', x: 100, z: 0, offX: 16, offY: -8 },
       { name: '$ Chop Shop', color: '#e67e22', x: -80, z: 80, offX: 16, offY: -8 },
       { name: 'T Coral Taxi', color: '#f1c40f', x: 80, z: 120, offX: 16, offY: -8 },
-      { name: 'A Gun Shop', color: '#9b59b6', x: -40, z: -60, offX: 16, offY: -8 },
+      { name: 'A Coral Arms', color: '#9b59b6', x: -40, z: -60, offX: 16, offY: -8 },
       { name: 'C Street Race', color: '#e74c3c', x: -140, z: 195, offX: -95, offY: -8 }
     ];
 
@@ -273,7 +276,7 @@ export class FullMapView {
       { col: '#e67e22', label: '$ Los Manta Chop Shop' },
       { col: '#f1c40f', label: 'T Coral Taxi Cab Depot' },
       { col: '#e74c3c', label: 'C Street Checkpoint Race' },
-      { col: '#9b59b6', label: 'A Ammu-Nation Gun Store' },
+      { col: '#9b59b6', label: 'A Coral Arms Gun Store' },
       { col: '#3d5a6c', label: '■ Seabreeze Beach & Bay' }
     ];
 

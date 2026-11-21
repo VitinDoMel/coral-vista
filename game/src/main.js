@@ -110,18 +110,19 @@ window.addEventListener('DOMContentLoaded', () => {
       c1.mesh.position.set(32, 0, 194.5);
       c1.mesh.rotation.y = Math.PI / 2 - 0.06;
       c1.redLight.material.color.setHex(0xff0022);
-      c1.blueLight.material.color.setHex(0x0088ff);
+      c1.blueLight.material.color.setHex(0x001133);
 
       const c2 = police.patrolCars[1];
       c2.mesh.position.set(16, 0, 198);
       c2.mesh.rotation.y = Math.PI / 2 + 0.08;
-      c2.redLight.material.color.setHex(0xff0022);
-      c2.blueLight.material.color.setHex(0x0088ff);
+      c2.redLight.material.color.setHex(0x330005);
+      c2.blueLight.material.color.setHex(0x0077ff);
     }
 
     if (police.helicopter) {
       police.helicopter.visible = true;
-      police.helicopter.position.set(36, 20, 190);
+      police.helicopter.position.set(36, 13.5, 194);
+      police.helicopter.rotation.x = 0.12;
       police.spotDisc.visible = true;
       police.spotDisc.position.set(48, 0.32, 196);
     }
