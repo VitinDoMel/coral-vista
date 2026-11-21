@@ -1,120 +1,79 @@
-// HEATWAVE: Coral Vista - Deterministic screenshot staging for ?shot=chase|foot|map|title
+// The screenshot scenes behind ?shot=start|play|end. Each one plays the real rules forward from a
+// fresh world for a fixed number of steps, steered by a simple autopilot (look ahead each way the
+// paddle could move, keep clear of blocks, chase the lowest coin when that is safe), so the frame
+// is what a short game really looks like and the same seed always gives the same frame.
+import { FIELD, PLAYER, STEP } from './config.js';
+import { EVENT_OVER, KIND_BLOCK } from './world.js';
+import { SCREEN_OVER, SCREEN_PLAY, SCREEN_TITLE } from './render.js';
 
-import * as THREE from 'three';
-import { Vehicle } from './vehicles/vehicle.js';
+const START_SECONDS = 5;
+const PLAY_SECONDS = 26;
+const END_LIMIT_SECONDS = 600;
+/**
+ * How far ahead, in seconds, the autopilot checks each way it could move: the play scene's pilot
+ * looks well ahead and keeps all its lives; the end scene's looks only a moment ahead, so it is
+ * caught out once the blocks speed up, as a hurried player is.
+ */
+const HORIZON_PLAY = 0.7;
+const HORIZON_END = 0.25;
+const SAMPLE = 1 / 30;
+const DIRECTIONS = [0, -1, 1];
+/** Extra room, each side, it keeps between the paddle and a block. */
+const MARGIN = 10;
 
-export function applyShot(game, shot) {
-  if (!shot) return false;
-
-  game.player.isStagedShot = true;
-  game.menus.closeTitleMenu();
-
-  const instructions = document.getElementById('instructions');
-  if (instructions) instructions.style.display = 'none';
-
-  if (shot === 'chase') {
-    game.wanted.setStars(3);
-    game.missions.currentMissionIndex = 0;
-    game.missions.state = 'active';
-
-    // Player sports car speeding northbound along Seabreeze Boulevard
-    const playerCarModel = game.vehicleModels.createCarMesh('sports', 0xe62e2d);
-    const playerCar = new Vehicle(game.engine.scene, game.collisions, playerCarModel, 'sports');
-    playerCar.setEffects(game.particles, game.skidmarks, game.sound);
-    playerCar.setPosition(-86.5, 24.0, 0.0);
-    playerCar.speed = 32.0;
-    game.player.enterVehicle(playerCar);
-
-    // 3 CVPD Police Cruisers pursuing aggressively with illuminated red/blue emergency lightbars
-    const policeConfigs = [
-      { x: -83.5, z: 14.0, yaw: -0.06, speed: 31.0 },
-      { x: -88.5, z: 8.5,  yaw: 0.04,  speed: 30.5 },
-      { x: -84.2, z: 1.0,  yaw: 0.0,   speed: 29.5 },
-    ];
-
-    for (let i = 0; i < policeConfigs.length; i++) {
-      const cfg = policeConfigs[i];
-      const copModel = game.vehicleModels.createCarMesh('police', 0x152238);
-      const copCar = new Vehicle(game.engine.scene, game.collisions, copModel, 'police');
-      copCar.setEffects(game.particles, game.skidmarks, game.sound);
-      copCar.setPosition(cfg.x, cfg.z, cfg.yaw);
-      copCar.speed = cfg.speed;
-
-      if (copModel.mesh.userData.lightbar) {
-        copModel.mesh.userData.lightbar.red.visible = true;
-        copModel.mesh.userData.lightbar.blue.visible = true;
-      }
+/** Seconds until moving in `direction` (-1, 0, 1) runs the paddle into a block; Infinity when it never does. */
+function timeToHit(state, direction, horizon) {
+  const player = state.player;
+  for (let t = SAMPLE; t <= horizon; t += SAMPLE) {
+    const x = Math.min(FIELD.width - player.width, Math.max(0, player.x + direction * PLAYER.speed * t));
+    for (let index = 0; index < state.items.length; index += 1) {
+      const item = state.items[index];
+      if (!item.active || item.kind !== KIND_BLOCK) continue;
+      const y = item.y + item.speed * t;
+      if (y + item.height > player.y && y < player.y + player.height && item.x < x + player.width + MARGIN && item.x + item.width > x - MARGIN) return t;
     }
-
-    // Emergency red and blue ambient glow on the road
-    const redGlow = new THREE.PointLight(0xff0044, 2.5, 16);
-    redGlow.position.set(-84.0, 2.2, 14.0);
-    game.engine.scene.add(redGlow);
-    const blueGlow = new THREE.PointLight(0x00e5ff, 2.5, 16);
-    blueGlow.position.set(-83.0, 2.2, 14.0);
-    game.engine.scene.add(blueGlow);
-
-    // CVPD Police helicopter hovering with spotlight on fleeing car
-    if (game.police?.helicopter) {
-      game.police.helicopter.deploy({ x: -86.5, z: 24.0 });
-      game.police.helicopter.position.set(-87.0, 11.5, 17.5);
-      game.police.helicopter.root.position.copy(game.police.helicopter.position);
-      game.police.helicopter.root.rotation.set(0.12, 0.35, -0.05);
-      game.police.helicopter.root.scale.set(1.35, 1.35, 1.35);
-      game.police.helicopter.root.visible = true;
-      game.police.helicopter.searchlight.target.position.set(-86.5, 0.5, 23.0);
-      game.police.helicopter.searchlight.target.updateMatrixWorld();
-    }
-
-    // Tire smoke puffs and skid tracks on asphalt
-    game.skidmarks.addSkidmark(-87.5, 0.12, 22.0, 0.0, 0.65);
-    game.skidmarks.addSkidmark(-85.5, 0.12, 22.0, 0.0, 0.65);
-    game.particles.spawnTireSmoke(-87.5, 0.2, 22.0, 0, 0, 10);
-    game.particles.spawnTireSmoke(-85.5, 0.2, 22.0, 0, 0, 10);
-
-    // 3/4 front-lateral camera looking back at fleeing car & pursuers
-    game.engine.camera.position.set(-93.5, 3.2, 33.0);
-    game.engine.camera.lookAt(-86.5, 1.4, 16.0);
-
-    game.hud.update(game.player, game.wanted, game.missions, game.police, game.combat);
-    return true;
-
-  } else if (shot === 'foot') {
-    game.missions.currentMissionIndex = 0;
-    game.missions.activeDialogue = {
-      speaker: 'Nina Vega',
-      text: 'Rafa, Los Manta are demanding their cut. Find a sports coupe on Seabreeze Boulevard and bring it to their garage.',
-    };
-
-    game.player.position.set(-91.5, 0.22, 24);
-    game.player.yaw = 0.22;
-    game.player.pitch = 0.08;
-    game.player.root.position.copy(game.player.position);
-    game.player.root.rotation.y = 0.25;
-
-    game.engine.camera.position.set(-89.2, 2.4, 15.0);
-    game.engine.camera.lookAt(-91.8, 1.6, 27.0);
-
-    const crosshair = document.getElementById('crosshair');
-    if (crosshair) crosshair.style.display = 'block';
-
-    game.hud.update(game.player, game.wanted, game.missions, game.police, game.combat);
-    return true;
-
-  } else if (shot === 'map') {
-    game.menus.mapRoot.style.display = 'flex';
-    game.menus.isMapOpen = true;
-    game.menus.drawLargeMap();
-    return true;
-
-  } else if (shot === 'title') {
-    game.menus.titleRoot.style.display = 'flex';
-    game.menus.isTitleOpen = true;
-    game.hud.hide();
-    game.engine.camera.position.set(-135, 55, 85);
-    game.engine.camera.lookAt(-35, 14, -25);
-    return true;
   }
+  return Infinity;
+}
 
-  return false;
+/** Of the safe ways to move, the one toward the lowest coin (or the centre); else the one that is hit last. */
+function autopilot(state, horizon) {
+  const player = state.player;
+  let coin = null;
+  for (let index = 0; index < state.items.length; index += 1) {
+    const item = state.items[index];
+    if (item.active && item.kind !== KIND_BLOCK && (coin === null || item.y > coin.y)) coin = item;
+  }
+  const target = coin === null ? FIELD.width / 2 : coin.x + coin.width / 2;
+  const centre = player.x + player.width / 2;
+  const wanted = target > centre + 8 ? 1 : target < centre - 8 ? -1 : 0;
+  let best = wanted;
+  let bestTime = timeToHit(state, wanted, horizon);
+  for (let index = 0; index < DIRECTIONS.length && bestTime !== Infinity; index += 1) {
+    const time = timeToHit(state, DIRECTIONS[index], horizon);
+    if (time > bestTime) {
+      bestTime = time;
+      best = DIRECTIONS[index];
+    }
+  }
+  return best;
+}
+
+/**
+ * Set `world` to the named scene (start, play or end; any other name is start) and return the
+ * screen to draw over it and the best score to show.
+ */
+export function stageShot(name, world) {
+  world.reset();
+  if (name !== 'play' && name !== 'end') {
+    for (let index = 0; index < START_SECONDS / STEP; index += 1) world.step(STEP, 0, true);
+    return { screen: SCREEN_TITLE, best: 0 };
+  }
+  const limit = name === 'end' ? END_LIMIT_SECONDS : PLAY_SECONDS;
+  const horizon = name === 'end' ? HORIZON_END : HORIZON_PLAY;
+  for (let index = 0; index < limit / STEP; index += 1) {
+    if (world.step(STEP, autopilot(world.state, horizon), false) & EVENT_OVER) break;
+  }
+  const over = world.state.lives === 0;
+  return { screen: over ? SCREEN_OVER : SCREEN_PLAY, best: world.state.score };
 }

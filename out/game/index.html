@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>HEATWAVE: Coral Vista</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #19091e;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #ffffff;
+  }
+  #webgl-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    outline: none;
+  }
+  #ui-root {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+    z-index: 10;
+  }
+  .hud-crosshair {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    display: none;
+  }
+  .hud-crosshair::before, .hud-crosshair::after {
+    content: '';
+    position: absolute;
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 0 4px rgba(0,0,0,0.8);
+  }
+  .hud-crosshair::before { top: 4px; left: -8px; width: 26px; height: 2px; }
+  .hud-crosshair::after { top: -8px; left: 4px; width: 2px; height: 26px; }
+  #instructions {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(18, 10, 26, 0.75);
+    border: 1px solid rgba(255, 120, 70, 0.5);
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    color: #ffddc8;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three.module.min.js"
+  }
+}
+</script>
+</head>
+<body>
+<canvas id="webgl-canvas" tabindex="0"></canvas>
+<div id="ui-root">
+  <div id="hud-top"></div>
+  <div id="hud-bottom"></div>
+</div>
+<div class="hud-crosshair" id="crosshair"></div>
+<div id="instructions">CLICK TO LOCK MOUSE &bull; WASD TO MOVE &bull; SHIFT SPRINT &bull; SPACE JUMP</div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
