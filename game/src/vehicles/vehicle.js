@@ -28,6 +28,19 @@ export class Vehicle {
 
     this.mesh = this.model.mesh;
     this.scene.add(this.mesh);
+
+    this.fx = null; // Set by game orchestrator
+    this.sound = null; // Set by game orchestrator
+    this.smokeTimer = 0;
+  }
+
+  setEffects(particles, skidmarks, sound) {
+    this.fx = { particles, skidmarks };
+    this.sound = sound;
+  }
+
+  getSpeedKmh() {
+    return Math.round(Math.abs(this.speed) * 3.6);
   }
 
   setPosition(x, z, yaw = 0) {
@@ -75,10 +88,25 @@ export class Vehicle {
       // Impact crash: absorb speed and take damage
       if (Math.abs(this.speed) > 6.0) {
         this.health = Math.max(0, this.health - Math.abs(this.speed) * 0.4);
+        if (this.fx?.particles) {
+          this.fx.particles.spawnSparks(resolved.x, this.position.y + 0.6, resolved.z, 0, 1, 0, 8);
+        }
+        if (this.sound) {
+          this.sound.playCrash(Math.abs(this.speed) / 12.0);
+        }
       }
       this.speed *= -0.25;
       this.position.x = resolved.x;
       this.position.z = resolved.z;
+    }
+
+    // Engine smoke when damaged
+    if (this.health < 65 && this.fx?.particles) {
+      this.smokeTimer += delta;
+      if (this.smokeTimer > (this.health < 30 ? 0.08 : 0.2)) {
+        this.smokeTimer = 0;
+        this.fx.particles.spawnEngineSmoke(this.position, this.health < 30 ? 2 : 1);
+      }
     }
 
     // Sync mesh transform
@@ -136,10 +164,23 @@ export class Vehicle {
       this.speed *= Math.max(0, 1.0 - delta * 0.85);
     }
 
-    // Handbrake drift
-    if (isHandbrake) {
-      this.speed *= Math.max(0, 1.0 - delta * 2.2);
-      this.steerAngle *= 1.08;
+    // Handbrake drift & tire friction effects
+    const isDrifting = isHandbrake || (Math.abs(this.steerAngle) > 0.35 && Math.abs(this.speed) > 14.0);
+    if (isDrifting) {
+      this.speed *= Math.max(0, 1.0 - delta * (isHandbrake ? 2.2 : 0.8));
+      this.steerAngle *= 1.06;
+
+      if (this.fx?.particles && Math.abs(this.speed) > 8.0) {
+        this.fx.particles.spawnTireSmoke(this.position.x, this.position.y, this.position.z, 0, 0, 2);
+      }
+      if (this.fx?.skidmarks && Math.abs(this.speed) > 10.0) {
+        this.fx.skidmarks.addSkidmark(this.position.x, this.position.y, this.position.z, this.yaw);
+      }
+    }
+
+    // Dynamic engine audio
+    if (this.sound) {
+      this.sound.updateEngine(Math.abs(this.speed) / this.maxSpeed, isAccelerating);
     }
   }
 

@@ -110,6 +110,11 @@ export class Player {
     this.respawnSystem = system;
   }
 
+  setEffects(particles, skidmarks, sound) {
+    this.fx = { particles, skidmarks };
+    this.sound = sound;
+  }
+
   takeDamage(amount) {
     if (this.health <= 0) return;
 

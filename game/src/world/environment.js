@@ -14,14 +14,14 @@ export class Environment {
   setupLighting() {
     // Sun-soaked hemisphere: clear blue sky to golden beach sand
     this.ambientLight = new THREE.HemisphereLight(
-      0x64b5f6, // Tropical sky blue
-      0xffe0b2, // Warm sand ambient
-      1.25
+      0x7ec5f8, // Vibrant tropical sky blue
+      0xffe6c2, // Warm sand ambient
+      1.35
     );
     this.scene.add(this.ambientLight);
 
     // Warm, brilliant low-angle sun
-    this.sunLight = new THREE.DirectionalLight(COLORS.SUN, 2.8);
+    this.sunLight = new THREE.DirectionalLight(COLORS.SUN, 2.85);
     this.sunLight.position.set(-180, 80, -30);
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.width = 2048;
@@ -48,11 +48,12 @@ export class Environment {
     const ctx = canvas.getContext('2d');
 
     const grad = ctx.createLinearGradient(0, 0, 0, 512);
-    grad.addColorStop(0.0, '#1976d2'); // Rich tropical blue at zenith
-    grad.addColorStop(0.38, '#42a5f5'); // Bright afternoon blue
-    grad.addColorStop(0.68, '#ff8a65'); // Warm coral peach
-    grad.addColorStop(0.86, '#ffb74d'); // Sunset apricot gold
-    grad.addColorStop(1.0, '#ffe082'); // Bright golden horizon
+    grad.addColorStop(0.0, '#1565c0'); // Rich deep blue at zenith
+    grad.addColorStop(0.35, '#29b6f6'); // Bright tropical sky blue
+    grad.addColorStop(0.58, '#81d4fa'); // Light azure transition
+    grad.addColorStop(0.74, '#ffe082'); // Golden sunset warmth
+    grad.addColorStop(0.88, '#ffab91'); // Coral peach
+    grad.addColorStop(1.0, '#ff8a65'); // Warm sunset horizon
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 128, 512);
 
@@ -78,21 +79,21 @@ export class Environment {
   }
 
   setupOcean() {
-    // Ocean begins right at the beach edge (x = -118) and stretches west
-    const oceanW = 350;
-    const oceanL = 500;
+    // Wide radiant tropical ocean stretching across the entire western horizon
+    const oceanW = 480;
+    const oceanL = 520;
     const oceanGeo = new THREE.PlaneGeometry(oceanW, oceanL, 48, 48);
     oceanGeo.rotateX(-Math.PI / 2);
 
-    // Vibrant tropical turquoise ocean with specular reflections
+    // Luminous tropical turquoise ocean with specular sheen
     this.oceanMat = new THREE.MeshStandardMaterial({
-      color: 0x0097a7, // Turquoise cyan
-      roughness: 0.15,
-      metalness: 0.7,
+      color: 0x00bcd4, // Vibrant turquoise cyan
+      roughness: 0.12,
+      metalness: 0.75,
     });
 
     this.ocean = new THREE.Mesh(oceanGeo, this.oceanMat);
-    this.ocean.position.set(-118 - oceanW * 0.5, -0.6, 0);
+    this.ocean.position.set(-112 - oceanW * 0.5, -0.6, 0);
     this.scene.add(this.ocean);
 
     this.oceanPositions = oceanGeo.attributes.position;

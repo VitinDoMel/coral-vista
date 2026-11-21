@@ -20,6 +20,10 @@ import { WantedSystem } from './police/wanted_system.js';
 import { PoliceManager } from './police/police_manager.js';
 import { MissionManager } from './missions/mission_manager.js';
 import { ActivitiesManager } from './missions/activities.js';
+import { ParticleSystem } from './fx/particles.js';
+import { SkidmarkManager } from './fx/skidmarks.js';
+import { SoundEngine } from './audio/synth_audio.js';
+import { RadioStation } from './audio/radio.js';
 import { HUD } from './ui/hud.js';
 import { MenuManager } from './ui/menus.js';
 
@@ -33,6 +37,11 @@ class Game {
     this.collisions = new CollisionSystem();
     this.vehicleModels = new VehicleModelFactory();
 
+    this.particles = new ParticleSystem(this.engine.scene);
+    this.skidmarks = new SkidmarkManager(this.engine.scene);
+    this.sound = new SoundEngine();
+    this.radio = new RadioStation(this.sound);
+
     this.wanted = new WantedSystem();
     this.police = new PoliceManager(this.engine.scene, this.collisions, this.vehicleModels);
 
@@ -40,6 +49,7 @@ class Game {
     this.hud = new HUD();
     this.menus = new MenuManager(this, this.storage);
 
+    this.bindGlobalKeys();
     this.handleShotMode();
     this.engine.start();
   }
@@ -50,6 +60,7 @@ class Game {
     this.city.build();
 
     this.player = new Player(this.engine.scene, this.collisions, this.engine.camera);
+    this.player.setEffects(this.particles, this.skidmarks, this.sound);
     this.respawn = new RespawnSystem(this.player);
     this.player.setRespawnSystem(this.respawn);
 
@@ -66,6 +77,8 @@ class Game {
       update: (delta, time) => {
         if (this.menus.isPaused || this.menus.isMapOpen) return;
 
+        this.particles.update(delta);
+        this.skidmarks.update(delta);
         this.environment.update(delta, time);
         this.traffic.update(delta, this.player.position);
         this.pedestrians.update(delta, this.player.position);
@@ -86,6 +99,17 @@ class Game {
 
         this.environment.follow(this.player.position);
       }
+    });
+  }
+
+  bindGlobalKeys() {
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'KeyR' && !this.menus.isTitleOpen && !this.menus.isPaused) {
+        const station = this.radio.toggleStation();
+        this.hud.showNotification(station);
+      }
+      // Start audio on first user keydown
+      this.sound.ensureContext();
     });
   }
 
@@ -131,6 +155,9 @@ class Game {
     this.player.isStagedShot = true;
     this.menus.closeTitleMenu();
 
+    const instructions = document.getElementById('instructions');
+    if (instructions) instructions.style.display = 'none';
+
     if (shot === 'chase') {
       this.wanted.setStars(3);
       this.missions.currentMissionIndex = 0;
@@ -138,31 +165,47 @@ class Game {
 
       const playerCarModel = this.vehicleModels.createCarMesh('sports', 0xe62e2d);
       const playerCar = new Vehicle(this.engine.scene, this.collisions, playerCarModel, 'sports');
-      playerCar.setPosition(-88.5, 16, 0);
-      playerCar.speed = 29.0;
+      playerCar.setEffects(this.particles, this.skidmarks, this.sound);
+      playerCar.setPosition(-88.5, 16, 0.04);
+      playerCar.speed = 31.0;
       this.player.enterVehicle(playerCar);
 
       const policeConfigs = [
-        { x: -84.0, z: 12, yaw: -0.08, speed: 28.5 },
-        { x: -88.5, z: 6,  yaw: 0.0,   speed: 28.0 },
-        { x: -92.5, z: 3,  yaw: 0.05,  speed: 27.5 },
+        { x: -84.8, z: 9.5, yaw: -0.06, speed: 30.5 },
+        { x: -89.2, z: 3.0, yaw: 0.02,  speed: 29.8 },
+        { x: -93.0, z: -3.5, yaw: 0.07,  speed: 29.0 },
       ];
 
       for (let i = 0; i < policeConfigs.length; i++) {
         const cfg = policeConfigs[i];
         const copModel = this.vehicleModels.createCarMesh('police', 0x152238);
         const copCar = new Vehicle(this.engine.scene, this.collisions, copModel, 'police');
+        copCar.setEffects(this.particles, this.skidmarks, this.sound);
         copCar.setPosition(cfg.x, cfg.z, cfg.yaw);
         copCar.speed = cfg.speed;
 
         if (copModel.mesh.userData.lightbar) {
-          copModel.mesh.userData.lightbar.red.visible = i % 2 === 0;
-          copModel.mesh.userData.lightbar.blue.visible = i % 2 !== 0;
+          copModel.mesh.userData.lightbar.red.visible = true;
+          copModel.mesh.userData.lightbar.blue.visible = true;
         }
       }
 
-      this.engine.camera.position.set(-89.5, 3.8, -3.0);
-      this.engine.camera.lookAt(-87.5, 1.8, 22.0);
+      // Police helicopter tracking overhead with spotlight
+      if (this.police?.helicopter) {
+        this.police.helicopter.deploy({ x: -88.5, z: 16 });
+        this.police.helicopter.position.set(-87.0, 24.0, 10.0);
+        this.police.helicopter.root.position.copy(this.police.helicopter.position);
+        this.police.helicopter.root.visible = true;
+      }
+
+      // Dynamic tire tracks and smoke on asphalt
+      this.skidmarks.addSkidmark(-89.5, 0.12, 14.5, 0.04, 0.65);
+      this.skidmarks.addSkidmark(-87.5, 0.12, 14.5, 0.04, 0.65);
+      this.particles.spawnTireSmoke(-88.5, 0.2, 13.5, 0, 0, 4);
+
+      // Third-person chase camera framing player car, cruisers, palms, beach & ocean
+      this.engine.camera.position.set(-87.6, 3.4, -3.5);
+      this.engine.camera.lookAt(-87.8, 1.8, 25.0);
 
       this.hud.update(this.player, this.wanted, this.missions, this.police, this.combat);
 
@@ -195,6 +238,7 @@ class Game {
     } else if (shot === 'title') {
       this.menus.titleRoot.style.display = 'flex';
       this.menus.isTitleOpen = true;
+      this.hud.hide();
       this.engine.camera.position.set(-135, 55, 85);
       this.engine.camera.lookAt(-35, 14, -25);
     }

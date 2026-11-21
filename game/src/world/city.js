@@ -333,21 +333,21 @@ export class CityBuilder {
 
   buildBeachAndBoardwalk() {
     // Wide radiant golden sand beach meeting water at x = -135
-    const beachW = 39; // from -135 to -96
+    const beachW = 44; // from -140 to -96
     const beachGeo = new THREE.PlaneGeometry(beachW, WORLD.SIZE - 40);
     beachGeo.rotateX(-Math.PI / 2);
     const beachMat = new THREE.MeshStandardMaterial({
-      color: 0xf4d06f, // Radiant golden Miami beach sand
-      roughness: 0.9,
+      color: 0xf5d378, // Radiant golden Miami beach sand
+      roughness: 0.88,
     });
     const beach = new THREE.Mesh(beachGeo, beachMat);
     beach.position.set(-96 - beachW * 0.5, 0.05, 0);
     beach.receiveShadow = true;
     this.scene.add(beach);
 
-    // Wooden pedestrian promenade / boardwalk
+    // Light sunlit stone pedestrian promenade / sidewalk along Ocean Blvd
     const walkGeo = new THREE.BoxGeometry(5.0, 0.28, WORLD.SIZE - 60);
-    const walkMat = new THREE.MeshStandardMaterial({ color: 0x8d5c32, roughness: 0.7 });
+    const walkMat = new THREE.MeshStandardMaterial({ color: 0xdcd6cb, roughness: 0.85 });
     const walk = new THREE.Mesh(walkGeo, walkMat);
     walk.position.set(-96, 0.18, 0);
     walk.receiveShadow = true;

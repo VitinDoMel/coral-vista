@@ -10,9 +10,9 @@ export class VehicleModelFactory {
     this.rimMat = new THREE.MeshStandardMaterial({ color: 0xdcdcdc, metalness: 0.8, roughness: 0.2 });
 
     this.glassMat = new THREE.MeshStandardMaterial({
-      color: 0x111c24,
-      metalness: 0.9,
-      roughness: 0.1,
+      color: 0x3d708e, // Azure sky tinted reflective glass
+      metalness: 0.85,
+      roughness: 0.15,
     });
     this.headlightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     this.taillightMat = new THREE.MeshBasicMaterial({ color: 0xff2222 });
@@ -72,6 +72,13 @@ export class VehicleModelFactory {
       cabin.castShadow = true;
       group.add(cabin);
 
+      // Body-colored roof cap
+      const roofGeo = new THREE.BoxGeometry(width * 0.78, 0.08, length * 0.36);
+      roofGeo.translate(0, 1.2, -0.2);
+      const roof = new THREE.Mesh(roofGeo, bodyMat);
+      roof.castShadow = true;
+      group.add(roof);
+
       // Rear spoiler
       const wingGeo = new THREE.BoxGeometry(width * 0.9, 0.08, 0.35);
       const wing = new THREE.Mesh(wingGeo, bodyMat);
@@ -92,6 +99,13 @@ export class VehicleModelFactory {
       cabinGeo.translate(0, 1.05, -0.4);
       const cabin = new THREE.Mesh(cabinGeo, this.glassMat);
       group.add(cabin);
+
+      // Body-colored roof cap
+      const roofGeo = new THREE.BoxGeometry(width * 0.80, 0.08, length * 0.32);
+      roofGeo.translate(0, 1.32, -0.4);
+      const roof = new THREE.Mesh(roofGeo, bodyMat);
+      roof.castShadow = true;
+      group.add(roof);
 
       // Hood scoop
       const scoopGeo = new THREE.BoxGeometry(0.6, 0.12, 0.9);
@@ -122,9 +136,16 @@ export class VehicleModelFactory {
       const cabin = new THREE.Mesh(cabinGeo, this.glassMat);
       group.add(cabin);
 
+      // White roof cap
+      const roofGeo = new THREE.BoxGeometry(width * 0.80, 0.08, length * 0.36);
+      roofGeo.translate(0, 1.38, -0.2);
+      const roof = new THREE.Mesh(roofGeo, whiteMat);
+      roof.castShadow = true;
+      group.add(roof);
+
       // Police emergency lightbar
       const barGeo = new THREE.BoxGeometry(1.2, 0.16, 0.3);
-      barGeo.translate(0, 1.44, -0.2);
+      barGeo.translate(0, 1.48, -0.2);
       const barMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
       const bar = new THREE.Mesh(barGeo, barMat);
       group.add(bar);
@@ -132,13 +153,13 @@ export class VehicleModelFactory {
       const redLightGeo = new THREE.BoxGeometry(0.48, 0.14, 0.28);
       const redLightMat = new THREE.MeshBasicMaterial({ color: 0xff1744 });
       const redLight = new THREE.Mesh(redLightGeo, redLightMat);
-      redLight.position.set(-0.32, 1.44, -0.2);
+      redLight.position.set(-0.32, 1.48, -0.2);
       group.add(redLight);
 
       const blueLightGeo = new THREE.BoxGeometry(0.48, 0.14, 0.28);
       const blueLightMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff });
       const blueLight = new THREE.Mesh(blueLightGeo, blueLightMat);
-      blueLight.position.set(0.32, 1.44, -0.2);
+      blueLight.position.set(0.32, 1.48, -0.2);
       group.add(blueLight);
 
       group.userData.lightbar = { red: redLight, blue: blueLight };
@@ -159,11 +180,18 @@ export class VehicleModelFactory {
       const cabin = new THREE.Mesh(cabinGeo, this.glassMat);
       group.add(cabin);
 
+      // Yellow taxi roof cap
+      const roofGeo = new THREE.BoxGeometry(width * 0.80, 0.08, length * 0.36);
+      roofGeo.translate(0, 1.36, -0.2);
+      const roof = new THREE.Mesh(roofGeo, taxiMat);
+      roof.castShadow = true;
+      group.add(roof);
+
       // Taxi roof light
       const signGeo = new THREE.BoxGeometry(0.7, 0.18, 0.3);
+      signGeo.translate(0, 1.48, -0.2);
       const signMat = new THREE.MeshBasicMaterial({ color: 0xfff3a0 });
       const sign = new THREE.Mesh(signGeo, signMat);
-      sign.position.set(0, 1.42, -0.2);
       group.add(sign);
 
     } else {
@@ -178,17 +206,16 @@ export class VehicleModelFactory {
       lower.castShadow = true;
       group.add(lower);
 
-      const cabinGeo = new THREE.BoxGeometry(width * 0.88, 0.68, length * 0.6);
-      cabinGeo.translate(0, 1.4, -0.3);
+      const cabinGeo = new THREE.BoxGeometry(width * 0.86, 0.62, length * 0.52);
+      cabinGeo.translate(0, 1.45, -0.3);
       const cabin = new THREE.Mesh(cabinGeo, this.glassMat);
       group.add(cabin);
 
-      // Roof rack
-      const rackGeo = new THREE.BoxGeometry(width * 0.75, 0.08, length * 0.5);
-      const rackMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-      const rack = new THREE.Mesh(rackGeo, rackMat);
-      rack.position.set(0, 1.78, -0.3);
-      group.add(rack);
+      const roofGeo = new THREE.BoxGeometry(width * 0.82, 0.08, length * 0.44);
+      roofGeo.translate(0, 1.78, -0.3);
+      const roof = new THREE.Mesh(roofGeo, bodyMat);
+      roof.castShadow = true;
+      group.add(roof);
     }
 
     // Headlights (front: +Z)
