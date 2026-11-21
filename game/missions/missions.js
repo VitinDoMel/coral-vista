@@ -6,20 +6,20 @@ export const STORY_MISSIONS = [
   {
     id: 1,
     code: 'mission_1',
-    title: '1. Roubo na Brisa',
+    title: '1. Breeze Heist',
     district: 'Seabreeze Strip',
     startPos: { x: 120, z: 58 },
     targetPos: { x: -30, z: 12 },
     reward: 1500,
     wantedOnStart: 1,
-    objectiveStart: 'Roube o esportivo Manta GT na Seabreeze Boulevard (F)',
-    objectiveDrive: 'Leve o Manta GT até a garagem de Nina Vega em Coral Downtown',
+    objectiveStart: 'Steal the Manta GT sports car on Seabreeze Boulevard (Press F)',
+    objectiveDrive: 'Deliver the Manta GT to Nina Vega garage in Coral Downtown',
     dialogueKey: 'mission_1_start'
   },
   {
     id: 2,
     code: 'mission_2',
-    title: '2. Entrega Relâmpago',
+    title: '2. Flash Delivery',
     district: 'Coral Downtown',
     startPos: { x: -30, z: -135 },
     targetPos: { x: 45, z: -150 },
@@ -31,47 +31,47 @@ export const STORY_MISSIONS = [
     timeLimit: 65,
     reward: 2000,
     wantedOnStart: 1,
-    objectiveStart: 'Cruze os 3 checkpoints até a torre de dados antes do tempo zerar',
-    objectiveDrive: 'Acelere até o próximo checkpoint de transmissão de Nina Vega',
+    objectiveStart: 'Hit all 3 crypto checkpoints before the countdown expires',
+    objectiveDrive: 'Race to the next Nina Vega relay checkpoint',
     dialogueKey: 'mission_2_start'
   },
   {
     id: 3,
     code: 'mission_3',
-    title: '3. Impacto nos Manta',
+    title: '3. Manta Takedown',
     district: 'Palm Gardens',
     startPos: { x: -180, z: -38 },
     targetPos: { x: -180, z: -115 },
     reward: 2500,
     wantedOnStart: 2,
-    objectiveStart: 'Alcance e bata no carro-alvo do tenente de Los Manta em Palm Gardens',
-    objectiveDrive: 'Abalroe o carro-alvo dos Los Manta até destruir sua blindagem',
+    objectiveStart: 'Track and ram the Los Manta lieutenant sedan in Palm Gardens',
+    objectiveDrive: 'Ram the Los Manta target car until its armor breaks',
     dialogueKey: 'mission_3_start'
   },
   {
     id: 4,
     code: 'mission_4',
-    title: '4. Cerco no Porto',
+    title: '4. Harbor Siege',
     district: 'Coral Harbor Port',
     startPos: { x: -105, z: 215 },
     targetPos: { x: -105, z: 248 },
     reward: 3500,
     wantedOnStart: 3,
-    objectiveStart: 'Elimine a escolta armada de Los Manta entre os contêineres do Porto',
-    objectiveDrive: 'Neutralize os capangas de Los Manta no cais do Porto Sul',
+    objectiveStart: 'Clear the armed Los Manta guards at South Harbor Port',
+    objectiveDrive: 'Neutralize the Los Manta crew between the harbor containers',
     dialogueKey: 'mission_4_start'
   },
   {
     id: 5,
     code: 'mission_5',
-    title: '5. Fuga pela Ponte',
+    title: '5. Bridge Escape',
     district: 'Coral Bay Bridge',
     startPos: { x: 120, z: -115 },
     targetPos: { x: 305, z: -150 },
     reward: 6000,
     wantedOnStart: 4,
-    objectiveStart: 'Sobreviva à perseguição da CVPD e atravesse a Coral Bay Bridge até Starlight Key',
-    objectiveDrive: 'Fuga Final: Cruze a Coral Bay Bridge até o refúgio em Starlight Key',
+    objectiveStart: 'Outrun CVPD pursuit and cross Coral Bay Bridge to Starlight Key',
+    objectiveDrive: 'Final Escape: Cross Coral Bay Bridge to Starlight Key safehouse',
     dialogueKey: 'mission_5_start'
   }
 ];
@@ -79,7 +79,7 @@ export const STORY_MISSIONS = [
 export const CITY_POIS = [
   {
     id: 'coral_arms',
-    name: 'Loja Coral Arms',
+    name: 'Coral Arms Shop',
     shortLabel: 'CORAL ARMS',
     type: 'shop',
     x: 45,
@@ -88,8 +88,8 @@ export const CITY_POIS = [
   },
   {
     id: 'cvpd_hq',
-    name: 'Delegacia CVPD',
-    shortLabel: 'DELEGACIA CVPD',
+    name: 'CVPD Precinct',
+    shortLabel: 'CVPD PRECINCT',
     type: 'police',
     x: -105,
     z: -112,
@@ -97,8 +97,8 @@ export const CITY_POIS = [
   },
   {
     id: 'coral_hospital',
-    name: 'Hospital Coral General',
-    shortLabel: 'HOSPITAL CORAL',
+    name: 'Coral General Hospital',
+    shortLabel: 'CORAL HOSPITAL',
     type: 'hospital',
     x: 45,
     z: 118,
@@ -106,8 +106,8 @@ export const CITY_POIS = [
   },
   {
     id: 'street_race',
-    name: 'Corrida Costeira',
-    shortLabel: 'CORRIDA COSTEIRA',
+    name: 'Coastal Sprint Race',
+    shortLabel: 'COASTAL RACE',
     type: 'race',
     x: 120,
     z: -38,
@@ -115,8 +115,8 @@ export const CITY_POIS = [
   },
   {
     id: 'taxi_depot',
-    name: 'Central Vista Cab',
-    shortLabel: 'CENTRAL TÁXI',
+    name: 'Vista Cab Taxi Depot',
+    shortLabel: 'TAXI DEPOT',
     type: 'taxi',
     x: -180,
     z: 112,
@@ -247,16 +247,16 @@ export class MissionManager {
 
   getActiveObjectiveText() {
     if (this.missionStage === 'completed_all') {
-      return 'História concluída! Explore Coral Vista, dispute corridas ou visite a Coral Arms';
+      return 'Story complete! Explore Coral Vista, enter street races or visit Coral Arms';
     }
     const m = this.getCurrentMission();
     const inCar = Boolean(this.vehicleManager && this.vehicleManager.activeVehicle);
 
     if (m.id === 2 && this.missionTimer > 0) {
-      return `${m.objectiveDrive} (${Math.ceil(this.missionTimer)}s restantes)`;
+      return `${m.objectiveDrive} (${Math.ceil(this.missionTimer)}s left)`;
     }
     if (m.id === 3 && this.rivalVehicle) {
-      return `${m.objectiveDrive} (Blindagem Los Manta: ${Math.max(0, Math.ceil(this.rivalHealth))}%)`;
+      return `${m.objectiveDrive} (Los Manta Armor: ${Math.max(0, Math.ceil(this.rivalHealth))}%)`;
     }
     return inCar ? m.objectiveDrive : m.objectiveStart;
   }
@@ -335,11 +335,11 @@ export class MissionManager {
           this.vehicleManager.activeVehicle.health = 100;
         }
         this.showNotification(
-          'LOJA CORAL ARMS',
-          'Colete tático 100%, munição 9mm recarregada e reparo completo (-$150)'
+          'CORAL ARMS SHOP',
+          'Full Armor, 9mm Ammo restock & Vehicle repair (-$150)'
         );
       } else {
-        this.showNotification('LOJA CORAL ARMS', 'Saldo insuficiente ($150 necessários)');
+        this.showNotification('CORAL ARMS SHOP', 'Insufficient cash ($150 required)');
       }
       return;
     }
@@ -349,8 +349,8 @@ export class MissionManager {
     if (distToRace < 10.0) {
       this.player.money += 800;
       this.showNotification(
-        'CORRIDA COSTEIRA CONCLUÍDA',
-        'Recorde da Seabreeze Boulevard batido! Prêmio: +$800'
+        'COASTAL SPRINT WON',
+        'New Seabreeze Boulevard lap record! Prize: +$800'
       );
       return;
     }
@@ -362,24 +362,24 @@ export class MissionManager {
       this.vehicleManager.activeVehicle.modelDef.id === 'vista_cab'
     ) {
       this.player.money += 450;
-      this.showNotification('CORRIDA VISTA CAB', 'Passageiro entregue no destino! Tarifa: +$450');
+      this.showNotification('VISTA CAB FARE', 'Passenger dropped off on time! Fare: +$450');
     }
   }
 
   getNearbyInteractionPrompt() {
     const p = this.player.position;
     if (Math.hypot(p.x - 45, p.z - -15) < 9.5) {
-      return '[G] LOJA CORAL ARMS — Comprar Colete Tático, Munição 9mm e Reparo ($150)';
+      return '[G] CORAL ARMS — Buy Armor, 9mm Ammo & Vehicle Repair ($150)';
     }
     if (Math.hypot(p.x - 120, p.z - -38) < 10.0) {
-      return '[G] CORRIDA COSTEIRA — Disputar Sprint de Checkpoints (+$800)';
+      return '[G] COASTAL RACE — Enter Checkpoint Sprint (+$800)';
     }
     if (
       this.vehicleManager &&
       this.vehicleManager.activeVehicle &&
       this.vehicleManager.activeVehicle.modelDef.id === 'vista_cab'
     ) {
-      return '[G] CENTRAL VISTA CAB — Realizar Corrida de Táxi (+$450)';
+      return '[G] VISTA CAB DISPATCH — Complete Taxi Fare (+$450)';
     }
     return null;
   }
@@ -412,7 +412,7 @@ export class MissionManager {
         c.collected = true;
         c.mesh.visible = false;
         this.player.money += c.amount;
-        this.showNotification('DINHEIRO COLETADO', `Malote recuperado em Coral Vista (+$${c.amount})`);
+        this.showNotification('CASH COLLECTED', `Briefcase recovered in Coral Vista (+$${c.amount})`);
       }
     }
 
@@ -434,7 +434,7 @@ export class MissionManager {
       if (this.missionTimer <= 0) {
         this.missionTimer = m.timeLimit;
         this.checkpointIndex = 0;
-        this.showNotification('TEMPO ESGOTADO', 'Reiniciando transmissão dos checkpoints de Nina');
+        this.showNotification('TIME EXPIRED', 'Resetting Nina relay checkpoint run');
       }
     }
 
@@ -464,7 +464,6 @@ export class MissionManager {
 
     if (distToTarget < 4.8) {
       if (m.id === 1 && (!this.vehicleManager || !this.vehicleManager.activeVehicle)) {
-        // Player reached the Manta GT; next step is entering it with F
         return;
       }
       if (m.id === 2 && m.checkpoints) {
@@ -474,7 +473,7 @@ export class MissionManager {
         } else {
           this.showNotification(
             `CHECKPOINT ${this.checkpointIndex}/${m.checkpoints.length}`,
-            'Sinal sincronizado! Siga para o próximo ponto.'
+            'Signal synced! Push to the next relay.'
           );
         }
         return;
@@ -489,8 +488,8 @@ export class MissionManager {
     const m = this.getCurrentMission();
     this.player.money += m.reward;
     this.showNotification(
-      `MISSÃO CONCLUÍDA: ${m.title.toUpperCase()}`,
-      `Recompensa recebida: +$${m.reward.toLocaleString('en-US')}`,
+      `MISSION COMPLETE: ${m.title.toUpperCase()}`,
+      `Reward paid: +$${m.reward.toLocaleString('en-US')}`,
       4.5
     );
 

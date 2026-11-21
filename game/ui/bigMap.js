@@ -310,7 +310,7 @@ export class BigMapOverlay {
     // Bridge label over the eastern ocean
     labels.push({
       kind: 'district',
-      text: 'PONTE CORAL BAY',
+      text: 'CORAL BAY BRIDGE',
       anchorX: toScreenX(210),
       anchorY: toScreenY(-150),
       x: toScreenX(210),
@@ -324,10 +324,10 @@ export class BigMapOverlay {
       fixedPin: true
     });
 
-    // Seabreeze Boulevard & Beach label over the turquoise ocean
+    // Beach & Turquoise Sea label over the eastern ocean
     labels.push({
       kind: 'district',
-      text: 'PRAIA & MAR TURQUESA',
+      text: 'BEACH & TURQUOISE SEA',
       anchorX: toScreenX(255),
       anchorY: toScreenY(45),
       x: toScreenX(255),
@@ -433,7 +433,7 @@ export class BigMapOverlay {
 
     labels.push({
       kind: 'player',
-      text: 'VOCÊ (RAFA SOL)',
+      text: 'YOU (RAFA SOL)',
       anchorX: plX,
       anchorY: plY,
       x: plX - 78,
@@ -582,7 +582,7 @@ export class BigMapOverlay {
     cy += 22;
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 19px "Segoe UI", sans-serif';
-    ctx.fillText('MAPA & PROGRESSO', padX, cy);
+    ctx.fillText('MAP & PROGRESS', padX, cy);
 
     // Story Progress Box
     cy += 18;
@@ -596,7 +596,7 @@ export class BigMapOverlay {
 
     ctx.fillStyle = '#a5b4fc';
     ctx.font = 'bold 12px "Segoe UI", sans-serif';
-    ctx.fillText(`PROGRESSO DA HISTÓRIA: ${completedCount}/5 (${pct}%)`, padX + 12, cy + 22);
+    ctx.fillText(`STORY PROGRESS: ${completedCount}/5 (${pct}%)`, padX + 12, cy + 22);
 
     // Progress Bar
     ctx.fillStyle = '#111622';
@@ -612,17 +612,23 @@ export class BigMapOverlay {
     ctx.fillStyle = '#2ecc71';
     ctx.font = 'bold 14px "Segoe UI", sans-serif';
     const moneyVal = state.money ?? 4850;
-    ctx.fillText(`CAIXA: $${moneyVal.toLocaleString('en-US')}`, padX + 12, cy + 66);
+    ctx.fillText(`CASH: $${moneyVal.toLocaleString('en-US')}`, padX + 12, cy + 66);
 
-    ctx.fillStyle = '#ffd166';
+    // Render CVPD wanted stars with filled gold vs dimmed empty stars matching HUD
     const stars = state.wantedStars ?? 0;
-    ctx.fillText(`CVPD: ${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}`, padX + 150, cy + 66);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = 'bold 13px "Segoe UI", sans-serif';
+    ctx.fillText('CVPD:', padX + 140, cy + 66);
+    for (let si = 0; si < 5; si++) {
+      ctx.fillStyle = si < stars ? '#ffc83b' : 'rgba(255, 255, 255, 0.18)';
+      ctx.fillText('★', padX + 184 + si * 14, cy + 66);
+    }
 
     // 5 Numbered Story Missions list
     cy += 108;
     ctx.fillStyle = '#94a3b8';
     ctx.font = 'bold 12px "Segoe UI", sans-serif';
-    ctx.fillText('MISSÕES (RAFA SOL & NINA VEGA)', padX, cy);
+    ctx.fillText('MISSIONS (RAFA SOL & NINA VEGA)', padX, cy);
 
     cy += 10;
     const activeIdx = state.currentMissionIndex ?? 0;
@@ -657,17 +663,17 @@ export class BigMapOverlay {
     cy += 36;
     ctx.fillStyle = '#94a3b8';
     ctx.font = 'bold 12px "Segoe UI", sans-serif';
-    ctx.fillText('LEGENDA DO MAPA', padX, cy);
+    ctx.fillText('MAP LEGEND', padX, cy);
 
     const legendItems = [
-      { color: '#00f5d4', label: 'Você (Rafa Sol) & Rota GPS' },
-      { color: '#ff6b5b', label: 'Missão Principal Ativa (1–5)' },
-      { color: '#ff922b', label: 'Loja Coral Arms (Armas & Colete)' },
-      { color: '#4dabf7', label: 'Delegacia Central CVPD' },
-      { color: '#ff6b6b', label: 'Hospital Coral General' },
-      { color: '#20c997', label: 'Corrida Costeira (Seabreeze Blvd)' },
-      { color: '#fcc419', label: 'Central de Táxi Vista Cab' },
-      { color: '#12b4c4', label: 'Praia & Mar Turquesa (Costa Leste)' }
+      { color: '#00f5d4', label: 'You (Rafa Sol) & GPS Route' },
+      { color: '#ff6b5b', label: 'Active Story Mission (1–5)' },
+      { color: '#ff922b', label: 'Coral Arms (Weapons & Armor)' },
+      { color: '#4dabf7', label: 'CVPD Central Precinct' },
+      { color: '#ff6b6b', label: 'Coral General Hospital' },
+      { color: '#20c997', label: 'Coastal Race (Seabreeze Blvd)' },
+      { color: '#fcc419', label: 'Vista Cab Taxi Depot' },
+      { color: '#12b4c4', label: 'Beach & Turquoise Sea (East)' }
     ];
 
     cy += 8;
@@ -687,7 +693,7 @@ export class BigMapOverlay {
     ctx.fillStyle = '#64748b';
     ctx.font = 'bold 11px "Segoe UI", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Pressione [M] ou [ESC] para voltar à cidade', x + w * 0.5, y + h - 16);
+    ctx.fillText('Press [M] or [ESC] to return to the city', x + w * 0.5, y + h - 16);
     ctx.textAlign = 'left';
   }
 }

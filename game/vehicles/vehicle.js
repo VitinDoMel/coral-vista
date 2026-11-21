@@ -451,8 +451,12 @@ export class Vehicle {
       if (correctionSq > 1e-5) {
         this.position.x = checkPos.x;
         this.position.z = checkPos.z;
-        if (Math.abs(this.speed) > 10) {
-          this.health = Math.max(10, this.health - Math.abs(this.speed) * 0.45);
+        if (Math.abs(this.speed) > 9) {
+          this.health = Math.max(10, this.health - Math.abs(this.speed) * 0.55);
+          this.lastImpact = {
+            pos: this.position.clone().add(new THREE.Vector3(0, 0.8, 0)),
+            intensity: Math.min(1, Math.abs(this.speed) / 28)
+          };
         }
         this.speed *= 0.55;
       }

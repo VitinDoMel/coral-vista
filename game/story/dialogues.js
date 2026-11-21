@@ -1,17 +1,17 @@
 export const STORY_CHARACTERS = {
   rafa: {
     name: 'RAFA SOL',
-    role: 'Ex-Piloto de Fuga',
+    role: 'Ex-Getaway Driver',
     accent: '#ff6b5b'
   },
   nina: {
     name: 'NINA VEGA',
-    role: 'Hacker & Operadora',
+    role: 'Hacker & Operator',
     accent: '#2fd6c8'
   },
   manta: {
-    name: 'VÍTOR MANTA',
-    role: 'Chefe da Gangue Los Manta',
+    name: 'VICTOR MANTA',
+    role: 'Los Manta Syndicate Boss',
     accent: '#f7b731'
   }
 };
@@ -20,57 +20,57 @@ export const MISSION_DIALOGUES = {
   mission_1_start: [
     {
       speaker: 'nina',
-      text: 'Rafa, os cobradores da gangue Los Manta deram 24 horas. Tem um Manta GT estacionado na Seabreeze Boulevard — pega ele e traz pra minha garagem.'
+      text: 'Rafa, the Los Manta enforcers gave us 24 hours. There is a Manta GT parked on Seabreeze Boulevard — boost it and bring it to my garage.'
     },
     {
       speaker: 'rafa',
-      text: 'Se esse cupê tiver metade do motor que parece, a CVPD nem vai ver a placa. Tô indo buscar.'
+      text: 'If that coupe runs half as mean as it looks, CVPD will never read my plates. Moving on it now.'
     }
   ],
   mission_1_end: [
     {
       speaker: 'nina',
-      text: 'Carro entregue limpo! Já clono o transponder e abato a primeira parcela com os Los Manta.'
+      text: 'Clean delivery! Cloning the transponder right now — that clears your first debt installment with Los Manta.'
     }
   ],
   mission_2_start: [
     {
       speaker: 'nina',
-      text: 'Preciso entregar três módulos criptográficos no centro antes que o rastreio da CVPD feche a malha. Acelera contra o relógio!'
+      text: 'I need three crypto relays dropped downtown before CVPD locks down the grid. Floor it and beat the clock!'
     },
     {
       speaker: 'rafa',
-      text: 'Cinto afivelado. Segura a frequência aberta no meu rádio, Nina.'
+      text: 'Belt locked. Keep my radio channel clear, Nina.'
     }
   ],
   mission_3_start: [
     {
       speaker: 'manta',
-      text: 'Rafa Sol! Achou que um carro roubado pagava os juros dos Los Manta? Meu tenente está cruzando Palm Gardens com a lista dos devedores.'
+      text: 'Rafa Sol! Thought one stolen ride settles your tab with Los Manta? My lieutenant is cruising Palm Gardens with the ledger.'
     },
     {
       speaker: 'nina',
-      text: 'Alcança o sedã blindado do tenente em Palm Gardens e bate nele até travar o motor!'
+      text: 'Intercept that armored sedan in Palm Gardens and ram it until the engine stalls!'
     }
   ],
   mission_4_start: [
     {
       speaker: 'nina',
-      text: 'Os Los Manta montaram um depósito armado entre os contêineres do Porto Sul. Equipa a Coral 9mm e limpa o pátio do cais!'
+      text: 'Los Manta set up an armed stash among the South Harbor containers. Grab your Coral 9mm and clear the dockyard!'
     },
     {
       speaker: 'rafa',
-      text: 'Hora de encerrar essa conta no porto de Coral Vista.'
+      text: 'Time to close out this ledger at Coral Vista Harbor.'
     }
   ],
   mission_5_start: [
     {
       speaker: 'nina',
-      text: 'Vítor Manta vazou nossa posição pra CVPD! Quatro estrelas no rádio — cruza a Seabreeze Boulevard e foge pela Coral Bay Bridge até Starlight Key!'
+      text: 'Victor Manta burned our safehouse to CVPD! Four stars on the scanner — tear down Seabreeze Boulevard and cross Coral Bay Bridge to Starlight Key!'
     },
     {
       speaker: 'rafa',
-      text: 'Viaturas na cola e helicóptero no céu. Nos vemos do outro lado da ponte, Nina!'
+      text: 'Cruisers on my bumper and a chopper overhead. See you across the bay, Nina!'
     }
   ]
 };

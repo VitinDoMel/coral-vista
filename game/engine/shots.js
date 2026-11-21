@@ -14,30 +14,34 @@ export function applyDeterministicShot(engine, shotName) {
     policeManager,
     missionManager,
     combat,
-    uiManager
+    uiManager,
+    effects
   } = engine;
 
   if (shotName === 'chase') {
     // 1-chase.jpg (cover):
-    // Player driving Manta GT on Seabreeze Blvd at sunset,
-    // 3/4 rear-lateral camera, 3 CVPD cruisers right behind with lit red/blue lightbars,
-    // FULL CVPD Helicopter in frame with spotlight circle on ground,
-    // ★★★ wanted level, circular minimap, mission objective on HUD, traffic & pedestrians visible.
+    // Player red Manta GT in FOREGROUND (~9m from 3/4 lateral camera), heading south (+Z)
+    // along Seabreeze Boulevard at sunset, with 3 CVPD cruisers 11-16m BEHIND him
+    // with lit red/blue roof lightbars, FULL CVPD helicopter above with ground spotlight circle,
+    // ★★★ wanted level, circular minimap, English mission objective, tire skid marks, traffic & pedestrians.
     uiManager.setMode('gameplay');
+    if (effects) effects.setVignetteVisible(true);
+
     player.money = 4850;
     player.health = 92;
     player.armor = 78;
 
-    missionManager.currentMissionIndex = 4; // Mission 5 chase / Seabreeze pursuit
+    missionManager.currentMissionIndex = 4; // Mission 5: Bridge Escape
     missionManager.activeDialogue = null;
     missionManager.notification = null;
 
-    // Seat Rafa Sol inside the coral-red Manta GT sports coupe
+    // Seat Rafa Sol inside the coral-red Manta GT in the FOREGROUND, clear of bottom-left vitals HUD
     const playerCar = vehicleManager.vehicles[0];
-    playerCar.position.set(121.8, 0, 6.2);
-    playerCar.heading = -0.06;
-    playerCar.speed = 29.5; // ~106 KM/H
-    playerCar.steerAngle = -0.14;
+    playerCar.position.set(123.4, 0, 12.2);
+    playerCar.heading = Math.PI + 0.16;
+    playerCar.speed = 31.0; // ~112 KM/H
+    playerCar.steerAngle = -0.18;
+    playerCar.isDrifting = true;
     playerCar.driver = 'player';
     playerCar._syncVisuals(0.016);
 
@@ -46,14 +50,18 @@ export function applyDeterministicShot(engine, shotName) {
     player.position.copy(playerCar.position);
     player.heading = playerCar.heading;
 
-    // Set 3 Wanted Stars (★★★☆☆) and stage 3 CVPD cruisers right behind & flanking the player car
-    // positioned clearly above the bottom-left HUD panels
+    if (effects && !engine._chaseEffectsSeeded) {
+      effects.prepopulateDriftTrack(playerCar, 11);
+      engine._chaseEffectsSeeded = true;
+    }
+
+    // Set 3 Wanted Stars (★★★☆☆) and stage 3 CVPD cruisers 11-16m BEHIND the player car (to the north)
     policeManager.setWantedStars(3, player.position);
 
     const c0 = policeManager.cruisers[0];
     if (c0) {
-      c0.position.set(117.4, 0, 9.5);
-      c0.heading = -0.14;
+      c0.position.set(118.2, 0, 0.5);
+      c0.heading = Math.PI - 0.12;
       c0.sirenTimer = 0.05; // RED box active
       c0.updateSirenLights(0);
       c0.mesh.position.copy(c0.position);
@@ -62,8 +70,8 @@ export function applyDeterministicShot(engine, shotName) {
 
     const c1 = policeManager.cruisers[1];
     if (c1) {
-      c1.position.set(123.6, 0, 11.4);
-      c1.heading = 0.10;
+      c1.position.set(123.6, 0, -2.8);
+      c1.heading = Math.PI + 0.08;
       c1.sirenTimer = 0.30; // BLUE box active
       c1.updateSirenLights(0);
       c1.mesh.position.copy(c1.position);
@@ -72,33 +80,34 @@ export function applyDeterministicShot(engine, shotName) {
 
     const c2 = policeManager.cruisers[2];
     if (c2) {
-      c2.position.set(119.8, 0, 13.8);
-      c2.heading = -0.05;
+      c2.position.set(115.6, 0, -5.8);
+      c2.heading = Math.PI - 0.04;
       c2.sirenTimer = 0.08; // RED box active
       c2.updateSirenLights(0);
       c2.mesh.position.copy(c2.position);
       c2.mesh.rotation.y = c2.heading;
     }
 
-    // Place FULL CVPD Helicopter in upper-center frame with spotlight circle on the asphalt beside player car
+    // Place FULL CVPD Helicopter in upper-center sky shining spotlight circle onto road near Manta GT
     policeManager.helicopter.placeAndAimAt(
-      new THREE.Vector3(116.5, 11.4, -11.5),
-      new THREE.Vector3(119.5, 0.045, 2.2),
-      2.75
+      new THREE.Vector3(114.8, 12.2, -16.5),
+      new THREE.Vector3(121.0, 0.045, 5.5),
+      Math.PI - 0.25
     );
 
-    // 3/4 rear-lateral camera looking forward along Seabreeze Boulevard
+    // 3/4 lateral camera ~9.5m ahead-right of the player car looking north-northwest back along the chase
     cameraController.overrideActive = true;
-    cameraController.yaw = 0.22;
-    camera.position.set(128.2, 4.45, 23.6);
-    camera.lookAt(118.8, 2.35, -6.0);
+    cameraController.yaw = 0.34;
+    camera.position.set(129.6, 4.15, 21.8);
+    camera.lookAt(120.2, 1.75, -2.5);
     return true;
   }
 
   if (shotName === 'foot') {
-    // 2-foot.jpg: On foot on the coastal promenade/Seabreeze Blvd with pedestrians, palms,
-    // pistol aiming reticle, and mission with dialogue box.
+    // 2-foot.jpg: On foot on Seabreeze Blvd promenade with pedestrians, palms,
+    // pistol aiming reticle, and Mission 1 dialogue box.
     uiManager.setMode('gameplay');
+    if (effects) effects.setVignetteVisible(true);
     if (vehicleManager.activeVehicle) {
       vehicleManager.activeVehicle.driver = null;
       vehicleManager.activeVehicle = null;
@@ -126,10 +135,11 @@ export function applyDeterministicShot(engine, shotName) {
 
   if (shotName === 'map') {
     // 3-map.jpg: Big tactical map of Coral Vista with colored districts, 5 numbered missions,
-    // POIs, GPS route, Story Progress 2/5 panel, and legend (zero overlapping labels).
+    // POIs, GPS route, Story Progress 2/5 panel, CVPD 3/5 stars matching chase HUD, and legend.
+    if (effects) effects.setVignetteVisible(false);
     player.position.set(120.0, 0.18, 18.0);
     player.money = 4850;
-    policeManager.setWantedStars(1);
+    policeManager.setWantedStars(3);
     missionManager.currentMissionIndex = 2; // Story Progress 2/5 completed
     uiManager.setMode('map', engine.buildUIState());
     return true;
@@ -137,6 +147,7 @@ export function applyDeterministicShot(engine, shotName) {
 
   if (shotName === 'title') {
     // 4-title.jpg: Title screen overlay (no HUD, tagline, footer) over aerial sunset view of Coral Vista
+    if (effects) effects.setVignetteVisible(true);
     policeManager.setWantedStars(0);
     uiManager.setMode('title');
     cameraController.overrideActive = true;

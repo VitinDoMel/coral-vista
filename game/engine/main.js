@@ -13,6 +13,8 @@ import { PedestrianManager } from '../peds/pedestrians.js';
 import { PoliceManager } from '../police/police.js';
 import { MissionManager } from '../missions/missions.js';
 import { UIManager } from '../ui/hud.js';
+import { EffectsManager } from '../fx/particles.js';
+import { AudioEngine } from '../audio/audio.js';
 
 class CoralVistaEngine {
   constructor() {
@@ -62,6 +64,8 @@ class CoralVistaEngine {
       this.vehicleManager,
       this.policeManager
     );
+    this.effects = new EffectsManager(this.scene, this.uiRoot);
+    this.audio = new AudioEngine();
 
     this.uiManager = new UIManager(this.uiRoot, {
       onNewGame: () => this.startNewGame(),
@@ -78,6 +82,12 @@ class CoralVistaEngine {
 
     this.uiManager.update(this.buildUIState());
     this.shotFrameCount = 0;
+    if (this.shotName) {
+      if (this.shotName !== 'map') {
+        this.renderer.render(this.scene, this.camera);
+      }
+      this.shotFrameCount = 1;
+    }
     this.lastTime = performance.now();
     this._bindResize();
   }
@@ -103,8 +113,8 @@ class CoralVistaEngine {
       completedMissions: this.missionManager.currentMissionIndex
     });
     this.missionManager.showNotification(
-      'JOGO SALVO',
-      'Progresso gravado no armazenamento local (localStorage)'
+      'GAME SAVED',
+      'Progress stored locally (localStorage)'
     );
   }
 
@@ -120,7 +130,7 @@ class CoralVistaEngine {
     this.player.health = data.health ?? 100;
     this.player.armor = data.armor ?? 50;
     this.missionManager.startMission(data.missionIndex ?? 0, true);
-    this.missionManager.showNotification('PROGRESSO CARREGADO', 'Sessão restaurada com sucesso');
+    this.missionManager.showNotification('PROGRESS LOADED', 'Saved session restored');
   }
 
   buildUIState() {
@@ -135,12 +145,12 @@ class CoralVistaEngine {
     const weaponText =
       w.id === 'pistol'
         ? `CORAL 9MM • ${w.ammoInClip} / ${w.reserveAmmo}`
-        : 'PUNHOS • CORPO A CORPO';
+        : 'FISTS • MELEE';
 
     const inVehicle = Boolean(this.vehicleManager.activeVehicle);
 
     return {
-      missionTitle: m ? `MISSÃO ${m.id}/5 — ${m.title.toUpperCase()}` : 'CORAL VISTA',
+      missionTitle: m ? `MISSION ${m.id}/5 — ${m.title.toUpperCase()}` : 'CORAL VISTA',
       objectiveText: this.missionManager.getActiveObjectiveText(),
       objectiveDistance: dist,
       objectivePos: objPos,
@@ -153,6 +163,7 @@ class CoralVistaEngine {
       health: this.player.health,
       armor: this.player.armor,
       activeVehicle: this.vehicleManager.activeVehicle,
+      radioOn: this.audio.radioEnabled,
       showCrosshair: !inVehicle && this.combat.currentWeapon === 'pistol',
       activeDialogue: this.missionManager.activeDialogue,
       notification: this.missionManager.notification,
@@ -193,10 +204,11 @@ class CoralVistaEngine {
       return;
     }
 
-    // Global UI hotkeys: M (Big Map) / Escape (Pause)
+    // Global UI hotkeys: M (Big Map) / Escape (Pause) / B (Radio toggle)
     if (this.input.consumeKeyPress('KeyM') && this.uiManager.mode !== 'title') {
       const nextMode = this.uiManager.mode === 'map' ? 'gameplay' : 'map';
       this.uiManager.setMode(nextMode, this.buildUIState());
+      this.effects.setVignetteVisible(nextMode === 'gameplay');
     }
     if (this.input.consumeKeyPress('Escape') && this.uiManager.mode !== 'title') {
       const nextMode =
@@ -204,6 +216,10 @@ class CoralVistaEngine {
           ? 'gameplay'
           : 'paused';
       this.uiManager.setMode(nextMode, this.buildUIState());
+      this.effects.setVignetteVisible(nextMode === 'gameplay');
+    }
+    if (this.input.consumeKeyPress('KeyB') && this.vehicleManager.activeVehicle) {
+      this.audio.toggleRadio();
     }
 
     if (this.uiManager.mode === 'gameplay') {
@@ -220,8 +236,14 @@ class CoralVistaEngine {
         this.policeManager
       );
 
-      if (this.vehicleManager.activeVehicle) {
-        this.cameraController.updateForVehicleTarget(this.vehicleManager.activeVehicle, dt);
+      const activeCar = this.vehicleManager.activeVehicle;
+      if (activeCar) {
+        this.cameraController.updateForVehicleTarget(activeCar, dt);
+        if (activeCar.lastImpact) {
+          this.effects.spawnSparks(activeCar.lastImpact.pos, 10);
+          this.audio.playImpact(activeCar.lastImpact.intensity);
+          activeCar.lastImpact = null;
+        }
       } else {
         this.player.update(dt, this.input, this.cameraController);
         this.cameraController.updateForFootTarget(this.player.position, dt);
@@ -230,13 +252,17 @@ class CoralVistaEngine {
       this.combat.update(dt, this.input, this.cameraController, {
         vehicleManager: this.vehicleManager,
         pedestrianManager: this.pedestrianManager,
-        policeManager: this.policeManager
+        policeManager: this.policeManager,
+        effects: this.effects,
+        audio: this.audio
       });
 
       this.policeManager.update(dt, this.player, this.vehicleManager);
       this.missionManager.update(dt, this.input, this.combat);
-      this.trafficManager.update(dt, this.player.position, this.vehicleManager.activeVehicle);
+      this.trafficManager.update(dt, this.player.position, activeCar);
       this.pedestrianManager.update(dt);
+      this.effects.update(dt, this.vehicleManager);
+      this.audio.update(dt, activeCar, this.policeManager.wantedStars);
     }
 
     this.uiManager.update(this.buildUIState());

@@ -26,7 +26,7 @@ export class UIManager {
       font-family: 'Segoe UI', system-ui, sans-serif;
     `;
 
-    // 1. Top-Left Mission Objective Panel (missão topo esq.)
+    // 1. Top-Left Mission Objective Panel
     this.missionBox = document.createElement('div');
     this.missionBox.style.cssText = `
       position: absolute;
@@ -150,8 +150,8 @@ export class UIManager {
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
     `;
 
-    this.healthBarFill = this._createVitalRow(this.vitalsBox, '♥ VIDA', '#ff5252', '100%');
-    this.armorBarFill = this._createVitalRow(this.vitalsBox, '🛡 COLETE', '#38bdf8', '50%');
+    this.healthBarFill = this._createVitalRow(this.vitalsBox, '♥ HEALTH', '#ff5252', '100%');
+    this.armorBarFill = this._createVitalRow(this.vitalsBox, '🛡 ARMOR', '#38bdf8', '50%');
 
     this.bottomLeftBox.append(this.minimapCanvas, this.vitalsBox);
     this.hudContainer.appendChild(this.bottomLeftBox);
@@ -162,7 +162,7 @@ export class UIManager {
       position: absolute;
       bottom: 20px;
       right: 22px;
-      width: 190px;
+      width: 205px;
       background: rgba(14, 19, 30, 0.88);
       border: 1px solid rgba(255, 255, 255, 0.16);
       border-radius: 10px;
@@ -202,7 +202,15 @@ export class UIManager {
       border-radius: 6px;
     `;
     speedTrack.appendChild(this.speedFillEl);
-    this.speedBox.append(this.vehicleNameEl, this.speedValueEl, speedTrack);
+    this.radioEl = document.createElement('div');
+    this.radioEl.style.cssText = `
+      margin-top: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #72efdd;
+      letter-spacing: 0.4px;
+    `;
+    this.speedBox.append(this.vehicleNameEl, this.speedValueEl, speedTrack, this.radioEl);
     this.hudContainer.appendChild(this.speedBox);
 
     // 5. Center Pistol Crosshair (mira da pistola)
@@ -359,19 +367,19 @@ export class UIManager {
         HEATWAVE: CORAL VISTA
       </h1>
       <div style="font-size:16px;font-weight:600;color:#ffd166;margin-bottom:24px;">
-        A Coral Vista crime story — Sol quente, dívidas frias e asfalto em chamas
+        A Coral Vista crime story — Hot sun, cold debt, burning asphalt
       </div>
       <div style="display:flex;justify-content:center;gap:14px;margin-bottom:18px;">
         <button id="btn-new-game" style="padding:12px 26px;font-size:15px;font-weight:800;color:#0e131d;background:linear-gradient(135deg,#ff877a,#ff6b5b);border:none;border-radius:8px;cursor:pointer;">
-          NOVO JOGO
+          NEW GAME
         </button>
         <button id="btn-continue-game" style="padding:12px 24px;font-size:15px;font-weight:800;color:#ffffff;background:rgba(47,214,200,0.22);border:1.5px solid #2fd6c8;border-radius:8px;cursor:pointer;">
-          CONTINUAR
+          CONTINUE
         </button>
       </div>
       <div style="font-size:12px;color:#cbd5e1;line-height:1.6;background:rgba(255,255,255,0.05);padding:10px 14px;border-radius:8px;">
-        <strong>CONTROLES:</strong> WASD Mover/Dirigir • SHIFT Correr • ESPAÇO Pular/Freio de Mão • F Entrar/Roubar Carro •
-        MOUSE Mira/Tiro (1/2 Armas, R Recarregar) • G Loja Coral Arms • M Mapa Tático • ESC Pausa
+        <strong>CONTROLS:</strong> WASD Move/Drive • SHIFT Sprint • SPACE Jump/Handbrake • F Enter/Hijack Car •
+        MOUSE Aim/Shoot (1/2 Weapons, R Reload) • B Radio • G Coral Arms Shop • M Tactical Map • ESC Pause
       </div>
     `;
 
@@ -386,7 +394,7 @@ export class UIManager {
       letter-spacing: 0.6px;
     `;
     footer.textContent =
-      'HEATWAVE: Coral Vista v1.0 • Cidade, História e Personagens Originais (Rafa Sol & Nina Vega) • Three.js Engine';
+      'HEATWAVE: Coral Vista v1.0 • Original City, Story & Characters (Rafa Sol & Nina Vega) • Three.js Engine';
 
     this.titleOverlay.append(card, footer);
     this.uiRoot.appendChild(this.titleOverlay);
@@ -425,12 +433,12 @@ export class UIManager {
       text-align: center;
     `;
     box.innerHTML = `
-      <h2 style="font-size:24px;font-weight:900;color:#ffffff;margin-bottom:18px;">JOGO PAUSADO</h2>
+      <h2 style="font-size:24px;font-weight:900;color:#ffffff;margin-bottom:18px;">GAME PAUSED</h2>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <button id="btn-resume" style="padding:10px;font-weight:800;background:#ff6b5b;color:#0e131d;border:none;border-radius:7px;cursor:pointer;">CONTINUAR</button>
-        <button id="btn-open-map" style="padding:10px;font-weight:800;background:#2fd6c8;color:#0e131d;border:none;border-radius:7px;cursor:pointer;">MAPA DE CORAL VISTA (M)</button>
-        <button id="btn-save" style="padding:10px;font-weight:800;background:#334155;color:#ffffff;border:none;border-radius:7px;cursor:pointer;">SALVAR PROGRESSO</button>
-        <button id="btn-title" style="padding:10px;font-weight:800;background:#1e293b;color:#cbd5e1;border:none;border-radius:7px;cursor:pointer;">TELA DE TÍTULO</button>
+        <button id="btn-resume" style="padding:10px;font-weight:800;background:#ff6b5b;color:#0e131d;border:none;border-radius:7px;cursor:pointer;">RESUME</button>
+        <button id="btn-open-map" style="padding:10px;font-weight:800;background:#2fd6c8;color:#0e131d;border:none;border-radius:7px;cursor:pointer;">CORAL VISTA MAP (M)</button>
+        <button id="btn-save" style="padding:10px;font-weight:800;background:#334155;color:#ffffff;border:none;border-radius:7px;cursor:pointer;">SAVE PROGRESS</button>
+        <button id="btn-title" style="padding:10px;font-weight:800;background:#1e293b;color:#cbd5e1;border:none;border-radius:7px;cursor:pointer;">TITLE SCREEN</button>
       </div>
     `;
     this.pauseOverlay.appendChild(box);
@@ -462,7 +470,7 @@ export class UIManager {
     }
 
     // 1. Mission header & objective
-    this.missionTitleEl.textContent = state.missionTitle || 'MISSÃO ATIVA';
+    this.missionTitleEl.textContent = state.missionTitle || 'ACTIVE MISSION';
     const distSuffix =
       state.objectiveDistance != null ? ` (${Math.round(state.objectiveDistance)}m)` : '';
     this.missionObjEl.textContent = (state.objectiveText || '') + distSuffix;
@@ -503,6 +511,9 @@ export class UIManager {
       this.speedValueEl.textContent = `${kmh} KM/H`;
       const pct = Math.min(100, Math.round((kmh / 130) * 100));
       this.speedFillEl.style.width = `${pct}%`;
+      this.radioEl.textContent = state.radioOn
+        ? '♫ RADIO: SUNSET WAVE FM [B]'
+        : '♫ RADIO: OFF [B]';
     } else {
       this.speedBox.style.display = 'none';
     }

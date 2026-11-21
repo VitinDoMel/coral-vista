@@ -193,8 +193,16 @@ export class CombatSystem {
       const policeHit = context.policeManager.raycastShot(muzzlePos, aimDir, w.range, w.damage);
       if (policeHit) {
         endPoint = policeHit;
+        if (context.effects) context.effects.spawnSparks(policeHit, 7);
       }
       context.policeManager.reportCrime('gunshot', 1);
+    }
+
+    if (context.effects) {
+      context.effects.spawnGunSmoke(muzzlePos);
+    }
+    if (context.audio) {
+      context.audio.playGunshot();
     }
 
     if (context.pedestrianManager) {

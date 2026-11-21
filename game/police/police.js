@@ -704,8 +704,8 @@ export class PoliceManager {
       player.position.set(-22.5, 0.18, -68.0);
       player.money = Math.max(0, player.money - 150);
       this.lastRespawnNotice = {
-        title: 'DETIDO PELA CVPD',
-        subtitle: 'Liberado sob fiança na delegacia central (-$150)',
+        title: 'BUSTED BY CVPD',
+        subtitle: 'Released on bail at Central Precinct (-$150)',
         timer: 4.0
       };
     } else {
@@ -713,8 +713,8 @@ export class PoliceManager {
       player.position.set(52.5, 0.18, 68.0);
       player.money = Math.max(0, player.money - 100);
       this.lastRespawnNotice = {
-        title: 'HOSPITAL CORAL GENERAL',
-        subtitle: 'Alta médica após atendimento de emergência (-$100)',
+        title: 'CORAL GENERAL HOSPITAL',
+        subtitle: 'Discharged after emergency treatment (-$100)',
         timer: 4.0
       };
     }
