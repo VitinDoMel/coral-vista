@@ -180,7 +180,7 @@ export class BigMapOverlay {
         labelZ: -188
       },
       {
-        name: 'PORTO CORAL HARBOR',
+        name: 'PORT OF CORAL HARBOR',
         minX: -180,
         maxX: 45,
         minZ: 150,
