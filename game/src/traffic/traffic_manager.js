@@ -17,7 +17,7 @@ export class TrafficManager {
 
     // Defined lanes for Coral Vista: { x, isNorthBound, laneOffset }
     this.avenueLanes = [
-      { x: -85, zMin: -210, zMax: 210 }, // Ocean Boulevard
+      { x: -85, zMin: -210, zMax: 210 }, // Seabreeze Boulevard
       { x: -40, zMin: -210, zMax: 210 },
       { x: 10,  zMin: -210, zMax: 210 },
       { x: 60,  zMin: -210, zMax: 210 },

@@ -1,4 +1,4 @@
-// VCPD Police Officer character model and AI tactics
+// CVPD Police Officer character model and AI tactics
 
 import * as THREE from 'three';
 import { angleDifference, clamp } from '../core/math.js';

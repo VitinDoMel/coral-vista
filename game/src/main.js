@@ -26,6 +26,7 @@ import { SoundEngine } from './audio/synth_audio.js';
 import { RadioStation } from './audio/radio.js';
 import { HUD } from './ui/hud.js';
 import { MenuManager } from './ui/menus.js';
+import { applyShot } from './shots.js';
 
 class Game {
   constructor() {
@@ -150,97 +151,8 @@ class Game {
   handleShotMode() {
     const params = new URLSearchParams(window.location.search);
     const shot = params.get('shot');
-    if (!shot) return;
-
-    this.player.isStagedShot = true;
-    this.menus.closeTitleMenu();
-
-    const instructions = document.getElementById('instructions');
-    if (instructions) instructions.style.display = 'none';
-
-    if (shot === 'chase') {
-      this.wanted.setStars(3);
-      this.missions.currentMissionIndex = 0;
-      this.missions.state = 'active';
-
-      const playerCarModel = this.vehicleModels.createCarMesh('sports', 0xe62e2d);
-      const playerCar = new Vehicle(this.engine.scene, this.collisions, playerCarModel, 'sports');
-      playerCar.setEffects(this.particles, this.skidmarks, this.sound);
-      playerCar.setPosition(-88.5, 16, 0.04);
-      playerCar.speed = 31.0;
-      this.player.enterVehicle(playerCar);
-
-      const policeConfigs = [
-        { x: -84.8, z: 9.5, yaw: -0.06, speed: 30.5 },
-        { x: -89.2, z: 3.0, yaw: 0.02,  speed: 29.8 },
-        { x: -93.0, z: -3.5, yaw: 0.07,  speed: 29.0 },
-      ];
-
-      for (let i = 0; i < policeConfigs.length; i++) {
-        const cfg = policeConfigs[i];
-        const copModel = this.vehicleModels.createCarMesh('police', 0x152238);
-        const copCar = new Vehicle(this.engine.scene, this.collisions, copModel, 'police');
-        copCar.setEffects(this.particles, this.skidmarks, this.sound);
-        copCar.setPosition(cfg.x, cfg.z, cfg.yaw);
-        copCar.speed = cfg.speed;
-
-        if (copModel.mesh.userData.lightbar) {
-          copModel.mesh.userData.lightbar.red.visible = true;
-          copModel.mesh.userData.lightbar.blue.visible = true;
-        }
-      }
-
-      // Police helicopter tracking overhead with spotlight
-      if (this.police?.helicopter) {
-        this.police.helicopter.deploy({ x: -88.5, z: 16 });
-        this.police.helicopter.position.set(-87.0, 24.0, 10.0);
-        this.police.helicopter.root.position.copy(this.police.helicopter.position);
-        this.police.helicopter.root.visible = true;
-      }
-
-      // Dynamic tire tracks and smoke on asphalt
-      this.skidmarks.addSkidmark(-89.5, 0.12, 14.5, 0.04, 0.65);
-      this.skidmarks.addSkidmark(-87.5, 0.12, 14.5, 0.04, 0.65);
-      this.particles.spawnTireSmoke(-88.5, 0.2, 13.5, 0, 0, 4);
-
-      // Third-person chase camera framing player car, cruisers, palms, beach & ocean
-      this.engine.camera.position.set(-87.6, 3.4, -3.5);
-      this.engine.camera.lookAt(-87.8, 1.8, 25.0);
-
-      this.hud.update(this.player, this.wanted, this.missions, this.police, this.combat);
-
-    } else if (shot === 'foot') {
-      this.missions.currentMissionIndex = 0;
-      this.missions.activeDialogue = {
-        speaker: 'Nina Vega',
-        text: 'Rafa, Los Manta are demanding their cut. Find a sports coupe and bring it to their garage.',
-      };
-
-      this.player.position.set(-91.5, 0.22, 24);
-      this.player.yaw = 0.22;
-      this.player.pitch = 0.08;
-      this.player.root.position.copy(this.player.position);
-      this.player.root.rotation.y = 0.25;
-
-      this.engine.camera.position.set(-89.2, 2.4, 15.0);
-      this.engine.camera.lookAt(-91.8, 1.6, 27.0);
-
-      const crosshair = document.getElementById('crosshair');
-      if (crosshair) crosshair.style.display = 'block';
-
-      this.hud.update(this.player, this.wanted, this.missions, this.police, this.combat);
-
-    } else if (shot === 'map') {
-      this.menus.mapRoot.style.display = 'flex';
-      this.menus.isMapOpen = true;
-      this.menus.drawLargeMap();
-
-    } else if (shot === 'title') {
-      this.menus.titleRoot.style.display = 'flex';
-      this.menus.isTitleOpen = true;
-      this.hud.hide();
-      this.engine.camera.position.set(-135, 55, 85);
-      this.engine.camera.lookAt(-35, 14, -25);
+    if (shot) {
+      applyShot(this, shot);
     }
   }
 }

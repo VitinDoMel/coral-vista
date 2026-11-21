@@ -114,7 +114,7 @@ export class VehicleModelFactory {
       group.add(scoop);
 
     } else if (type === 'police') {
-      // VCPD Patrol Interceptor
+      // CVPD Patrol Interceptor
       wheelbase = 2.8;
       length = 4.8;
       const lowerGeo = new THREE.BoxGeometry(width, 0.68, length);

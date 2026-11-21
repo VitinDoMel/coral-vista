@@ -50,7 +50,7 @@ export class MissionManager {
       {
         id: 'm5_causeway_escape',
         title: 'Mission 5: Causeway Escape',
-        instruction: '4 Stars! Evade the VCPD blockade and escape across the Causeway Bridge',
+        instruction: '4 Stars! Evade the CVPD blockade and escape across the Causeway Bridge',
         target: { x: -20, z: -190, radius: 10.0 },
         wantedStars: 4,
         reward: 2500,

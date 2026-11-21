@@ -48,12 +48,16 @@ export class Environment {
     const ctx = canvas.getContext('2d');
 
     const grad = ctx.createLinearGradient(0, 0, 0, 512);
-    grad.addColorStop(0.0, '#1565c0'); // Rich deep blue at zenith
-    grad.addColorStop(0.35, '#29b6f6'); // Bright tropical sky blue
-    grad.addColorStop(0.58, '#81d4fa'); // Light azure transition
-    grad.addColorStop(0.74, '#ffe082'); // Golden sunset warmth
-    grad.addColorStop(0.88, '#ffab91'); // Coral peach
-    grad.addColorStop(1.0, '#ff8a65'); // Warm sunset horizon
+    // Above horizon (zenith at y=0 down to equator at y=256)
+    grad.addColorStop(0.0,  '#1565c0'); // Deep tropical blue at top pole
+    grad.addColorStop(0.18, '#1e88e5'); // Rich clear sky blue
+    grad.addColorStop(0.32, '#42a5f5'); // Bright afternoon cyan-blue
+    grad.addColorStop(0.42, '#80d8ff'); // Radiant tropical azure
+    grad.addColorStop(0.47, '#ffe082'); // Golden sunset warmth just above horizon
+    grad.addColorStop(0.50, '#ff8a65'); // Warm peach coral right at horizon line
+    // Below horizon
+    grad.addColorStop(0.54, '#ff7043');
+    grad.addColorStop(1.0,  '#bcaaa4');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 128, 512);
 
@@ -62,6 +66,7 @@ export class Environment {
       map: new THREE.CanvasTexture(canvas),
       side: THREE.BackSide,
       depthWrite: false,
+      fog: false,
     });
     this.skyMesh = new THREE.Mesh(skyGeo, skyMat);
     this.scene.add(this.skyMesh);
@@ -71,6 +76,7 @@ export class Environment {
     const sunMat = new THREE.MeshBasicMaterial({
       color: 0xfffde7,
       side: THREE.DoubleSide,
+      fog: false,
     });
     this.sunDisc = new THREE.Mesh(sunGeo, sunMat);
     this.sunDisc.position.set(-450, 160, -80);

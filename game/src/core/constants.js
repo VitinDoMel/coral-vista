@@ -15,7 +15,7 @@ export const WORLD = {
 };
 
 export const DISTRICTS = {
-  BEACH: 'Ocean Beach & Boardwalk',
+  BEACH: 'Seabreeze Beach & Promenade',
   DOWNTOWN: 'Coral Vista Downtown',
   RESIDENTIAL: 'Flamingo Palms',
   PORT: 'Port of Coral Vista',

@@ -1,4 +1,4 @@
-// VCPD Police Helicopter: 3D model, rotor animation, spotlight tracking, and aerial strafing
+// CVPD Police Helicopter: 3D model, rotor animation, spotlight tracking, and aerial strafing
 
 import * as THREE from 'three';
 

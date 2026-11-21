@@ -6,7 +6,7 @@ export class RespawnSystem {
 
     // Key respawn landmarks in Coral Vista
     this.hospitalPos = { x: 35, z: -45, yaw: 0 }; // Downtown Mercy Hospital
-    this.policeStationPos = { x: -15, z: 5, yaw: Math.PI / 2 }; // VCPD Central
+    this.policeStationPos = { x: -15, z: 5, yaw: Math.PI / 2 }; // CVPD Headquarters
 
     this.isRespawning = false;
     this.respawnTimer = 0;
@@ -84,7 +84,7 @@ export class RespawnSystem {
       this.player.yaw = this.hospitalPos.yaw;
       this.player.money = Math.max(0, this.player.money - 100);
     } else {
-      // Respawn at VCPD Police Station
+      // Respawn at CVPD Police Station
       this.player.position.set(this.policeStationPos.x, 0.2, this.policeStationPos.z);
       this.player.yaw = this.policeStationPos.yaw;
       this.player.money = Math.max(0, this.player.money - 100);

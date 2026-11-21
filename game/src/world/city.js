@@ -39,7 +39,7 @@ export class CityBuilder {
     ground.receiveShadow = true;
     this.scene.add(ground);
 
-    // Ocean Boulevard
+    // Seabreeze Boulevard
     this.createRoadSegment(WORLD.AVENUE_X, 0, WORLD.ROAD_WIDTH * 1.3, WORLD.SIZE - 40, true);
 
     // City grid avenues
@@ -54,7 +54,7 @@ export class CityBuilder {
       this.createCrosswalk(WORLD.AVENUE_X, z);
     }
 
-    // Light clean concrete sidewalks along Ocean Boulevard
+    // Light clean concrete sidewalks along Seabreeze Boulevard
     this.createSidewalk(WORLD.AVENUE_X - 12, 0, 5.0, WORLD.SIZE - 40);
     this.createSidewalk(WORLD.AVENUE_X + 12, 0, 5.0, WORLD.SIZE - 40);
   }
@@ -162,7 +162,7 @@ export class CityBuilder {
       mesh.receiveShadow = true;
       this.scene.add(mesh);
 
-      // Colorful awning over ground entrance facing Ocean Boulevard
+      // Colorful awning over ground entrance facing Seabreeze Boulevard
       if (b.x === -65) {
         const awningColor = decoColors[(i + 3) % decoColors.length];
         const awning = this.props.createAwning(12.0, 3.0, awningColor);

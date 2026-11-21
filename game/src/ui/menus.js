@@ -109,7 +109,7 @@ export class MenuManager {
             <div style="font-weight:bold;color:#aaa;margin-bottom:6px;text-transform:uppercase;font-size:11px;letter-spacing:1px;">DISTRICTS & STORY MISSIONS</div>
             <div style="display:flex;flex-direction:column;gap:4px;font-size:12px;">
               <div><span style="color:#ffd700;font-weight:bold;">[1]</span> Hot Wheels (Downtown Garage)</div>
-              <div><span style="color:#ffd700;font-weight:bold;">[2]</span> Night Run (Ocean Boulevard)</div>
+              <div><span style="color:#ffd700;font-weight:bold;">[2]</span> Night Run (Seabreeze Boulevard)</div>
               <div><span style="color:#ffd700;font-weight:bold;">[3]</span> Turf Takedown (Marina/Beach)</div>
               <div><span style="color:#ffd700;font-weight:bold;">[4]</span> Causeway Courier (Bridge)</div>
               <div><span style="color:#ffd700;font-weight:bold;">[5]</span> Kingpin Heat (Flamingo Palms)</div>
@@ -120,7 +120,7 @@ export class MenuManager {
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
               <div><span style="color:#00e676;font-weight:bold;">✚</span> Gun / Armor Shop</div>
               <div><span style="color:#ff5252;font-weight:bold;">🏥</span> Mercy Hospital</div>
-              <div><span style="color:#448aff;font-weight:bold;">🛡️</span> VCPD Headquarters</div>
+              <div><span style="color:#448aff;font-weight:bold;">🛡️</span> CVPD Headquarters</div>
               <div><span style="color:#ffd700;font-weight:bold;">🏁</span> Street Race Checkpoint</div>
               <div><span style="color:#ffeb3b;font-weight:bold;">🚕</span> Downtown Taxi Rank</div>
               <div><span style="color:#ff3d00;font-weight:bold;">▲</span> Player (Rafa Sol)</div>
@@ -169,7 +169,7 @@ export class MenuManager {
     const toMapY = (z) => ((z + 220) / 440) * h;
 
     // Distinct colored district base zones
-    // Ocean Drive zone (Warm coastal tint)
+    // Seabreeze Boulevard zone (Warm coastal tint)
     ctx.fillStyle = '#17282c';
     ctx.fillRect(toMapX(-96), 0, toMapX(-40) - toMapX(-96), h);
 
@@ -219,12 +219,12 @@ export class MenuManager {
       ctx.stroke();
     }
 
-    // District Labels in clean pill badges
-    this.drawPill(ctx, 'OCEAN DRIVE & BEACH', toMapX(-110), toMapY(75), '#0f2428', '#80deea');
-    this.drawPill(ctx, 'DOWNTOWN CORAL VISTA', toMapX(-25), toMapY(-40), '#0d1d33', '#90caf9');
-    this.drawPill(ctx, 'FLAMINGO PALMS', toMapX(75), toMapY(-35), '#0e2619', '#a5d6a7');
-    this.drawPill(ctx, 'PORT OF CORAL VISTA', toMapX(75), toMapY(120), '#1a1d22', '#b0bec5');
-    this.drawPill(ctx, 'VISTA CAUSEWAY BRIDGE', toMapX(-50), toMapY(-175), '#142338', '#81d4fa');
+    // District Labels in clean pill badges (carefully spaced to avoid overlap)
+    this.drawPill(ctx, 'SEABREEZE BLVD & BEACH', toMapX(-112), toMapY(95), '#0f2428', '#80deea');
+    this.drawPill(ctx, 'DOWNTOWN CORAL VISTA', toMapX(-20), toMapY(-78), '#0d1d33', '#90caf9');
+    this.drawPill(ctx, 'FLAMINGO PALMS', toMapX(85), toMapY(-75), '#0e2619', '#a5d6a7');
+    this.drawPill(ctx, 'PORT OF CORAL VISTA', toMapX(85), toMapY(145), '#1a1d22', '#b0bec5');
+    this.drawPill(ctx, 'VISTA CAUSEWAY BRIDGE', toMapX(-92), toMapY(-188), '#142338', '#81d4fa');
 
     // Numbered 5 Mission Markers
     const missions = [
@@ -252,10 +252,10 @@ export class MenuManager {
     }
 
     // Points of interest: Shop, Hospital, Police, Race
-    this.drawPill(ctx, '✚ GUN SHOP', toMapX(-15), toMapY(-45), '#093318', '#00e676');
-    this.drawPill(ctx, '🏥 MERCY HOSP.', toMapX(35), toMapY(-45), '#3a1114', '#ff5252');
-    this.drawPill(ctx, '🛡️ VCPD CENTRAL', toMapX(10), toMapY(30), '#10223e', '#448aff');
-    this.drawPill(ctx, '🏁 STREET RACE', toMapX(-85), toMapY(130), '#382f09', '#ffd700');
+    this.drawPill(ctx, '✚ GUN SHOP', toMapX(-35), toMapY(-28), '#093318', '#00e676');
+    this.drawPill(ctx, '🏥 MERCY HOSP.', toMapX(32), toMapY(-28), '#3a1114', '#ff5252');
+    this.drawPill(ctx, '🛡️ CVPD CENTRAL', toMapX(12), toMapY(28), '#10223e', '#448aff');
+    this.drawPill(ctx, '🏁 STREET RACE', toMapX(-85), toMapY(125), '#382f09', '#ffd700');
 
     // Dashed GPS route line between player and active mission
     const px = toMapX(this.game.player.position.x);

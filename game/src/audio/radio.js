@@ -5,7 +5,7 @@ export class RadioStation {
     this.sound = soundEngine;
     this.stations = [
       { id: 'heatwave', name: 'HEATWAVE 105.5 FM (SYNTHWAVE)' },
-      { id: 'vice',     name: 'CORAL VICE 98.2 FM (ELECTRO)' },
+      { id: 'palms',    name: 'PALM GROOVE 98.2 FM (ELECTRO)' },
       { id: 'off',      name: 'RADIO OFF' },
     ];
     this.currentStationIndex = 0;
