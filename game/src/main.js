@@ -8,11 +8,15 @@ import { CollisionSystem } from './world/collisions.js';
 import { Environment } from './world/environment.js';
 import { CityBuilder } from './world/city.js';
 import { Player } from './player/player.js';
+import { CombatSystem } from './player/combat.js';
+import { RespawnSystem } from './player/respawn_system.js';
 import { VehicleModelFactory } from './vehicles/vehicle_models.js';
 import { Vehicle } from './vehicles/vehicle.js';
 import { CarCamera } from './vehicles/car_camera.js';
 import { TrafficManager } from './traffic/traffic_manager.js';
 import { PedestrianManager } from './peds/ped_manager.js';
+import { WantedSystem } from './police/wanted_system.js';
+import { PoliceManager } from './police/police_manager.js';
 
 class Game {
   constructor() {
@@ -22,6 +26,9 @@ class Game {
     this.textures = new TextureFactory();
     this.collisions = new CollisionSystem();
     this.vehicleModels = new VehicleModelFactory();
+
+    this.wanted = new WantedSystem();
+    this.police = new PoliceManager(this.engine.scene, this.collisions, this.vehicleModels);
 
     this.initWorld();
     this.handleShotMode();
@@ -34,6 +41,10 @@ class Game {
     this.city.build();
 
     this.player = new Player(this.engine.scene, this.collisions, this.engine.camera);
+    this.respawn = new RespawnSystem(this.player);
+    this.player.setRespawnSystem(this.respawn);
+
+    this.combat = new CombatSystem(this.engine.scene, this.player, this.engine.camera);
     this.carCamera = new CarCamera(this.engine.camera);
 
     this.traffic = new TrafficManager(this.engine.scene, this.collisions, this.vehicleModels);
@@ -44,7 +55,10 @@ class Game {
         this.environment.update(delta, time);
         this.traffic.update(delta, this.player.position);
         this.pedestrians.update(delta, this.player.position);
+        this.police.update(delta, this.player, this.wanted);
         this.player.update(delta, this.input, this.traffic);
+        this.combat.update(delta, this.input, this.wanted, this.pedestrians, this.police, this.traffic);
+        this.respawn.update(delta);
 
         if (!this.player.isStagedShot && this.player.inVehicle && this.player.currentVehicle) {
           this.carCamera.update(delta, this.player.currentVehicle);
@@ -63,18 +77,18 @@ class Game {
     this.player.isStagedShot = true;
 
     if (shot === 'chase') {
-      // Player driving cherry red sports coupe along Ocean Boulevard
+      this.wanted.setStars(3);
+
       const playerCarModel = this.vehicleModels.createCarMesh('sports', 0xe62e2d);
       const playerCar = new Vehicle(this.engine.scene, this.collisions, playerCarModel, 'sports');
       playerCar.setPosition(-88.5, 16, 0);
       playerCar.speed = 29.0;
       this.player.enterVehicle(playerCar);
 
-      // 3 Police cruisers in hot pursuit visible directly in camera frame
       const policeConfigs = [
-        { x: -84.0, z: 12, yaw: -0.08, speed: 28.5 }, // Flanking left lane attempting PIT
-        { x: -88.5, z: 6,  yaw: 0.0,   speed: 28.0 }, // Right behind rear bumper
-        { x: -92.5, z: 3,  yaw: 0.05,  speed: 27.5 }, // Following on right side
+        { x: -84.0, z: 12, yaw: -0.08, speed: 28.5 },
+        { x: -88.5, z: 6,  yaw: 0.0,   speed: 28.0 },
+        { x: -92.5, z: 3,  yaw: 0.05,  speed: 27.5 },
       ];
 
       for (let i = 0; i < policeConfigs.length; i++) {
@@ -90,12 +104,10 @@ class Game {
         }
       }
 
-      // Camera positioned high behind showing full chase action
       this.engine.camera.position.set(-89.5, 3.8, -3.0);
       this.engine.camera.lookAt(-87.5, 1.8, 22.0);
 
     } else if (shot === 'foot') {
-      // Scenic promenade vista: Rafa on the palm-lined sidewalk, avenue with traffic, Art Déco buildings and ocean
       this.player.position.set(-91.5, 0.22, 24);
       this.player.yaw = 0.22;
       this.player.pitch = 0.08;
@@ -109,7 +121,6 @@ class Game {
       if (crosshair) crosshair.style.display = 'block';
 
     } else if (shot === 'aerial') {
-      // Magnificent aerial vista of Coral Vista from over the bay
       this.engine.camera.position.set(-145, 68, 80);
       this.engine.camera.lookAt(-30, 14, -30);
 

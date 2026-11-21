@@ -1,4 +1,4 @@
-// Rafa Sol player character model, third-person camera, locomotion, and vehicle interactions
+// Rafa Sol player character model, third-person camera, locomotion, damage, and vehicle interactions
 
 import * as THREE from 'three';
 import { PHYSICS } from '../core/constants.js';
@@ -28,6 +28,7 @@ export class Player {
     this.walkCycle = 0;
     this.cameraDistance = 5.2;
     this.cameraHeight = 2.2;
+    this.respawnSystem = null;
 
     this.buildMesh();
   }
@@ -103,6 +104,36 @@ export class Player {
     this.root.add(this.rightLeg);
 
     this.scene.add(this.root);
+  }
+
+  setRespawnSystem(system) {
+    this.respawnSystem = system;
+  }
+
+  takeDamage(amount) {
+    if (this.health <= 0) return;
+
+    if (this.armor > 0) {
+      if (this.armor >= amount) {
+        this.armor -= amount;
+        return;
+      } else {
+        const remaining = amount - this.armor;
+        this.armor = 0;
+        amount = remaining;
+      }
+    }
+
+    this.health = Math.max(0, this.health - amount);
+    if (this.health <= 0 && this.respawnSystem) {
+      this.respawnSystem.triggerWasted();
+    }
+  }
+
+  triggerBusted() {
+    if (this.respawnSystem) {
+      this.respawnSystem.triggerBusted();
+    }
   }
 
   update(delta, input, trafficManager) {
@@ -203,7 +234,6 @@ export class Player {
 
     const swing = Math.sin(this.walkCycle) * (move.sprint ? 0.85 : 0.5);
     this.leftArm.rotation.x = -swing;
-    this.rightArm.rotation.x = swing;
     this.leftLeg.rotation.x = swing;
     this.rightLeg.rotation.x = -swing;
 
