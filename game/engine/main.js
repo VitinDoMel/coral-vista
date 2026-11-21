@@ -4,6 +4,9 @@ import { ThirdPersonCamera } from './camera.js';
 import { CollisionWorld } from '../world/collision.js';
 import { setupSkyAndLighting, buildCoralVistaCity } from '../world/city.js';
 import { PlayerController } from '../player/player.js';
+import { VehicleManager } from '../vehicles/vehicleManager.js';
+import { TrafficManager } from '../traffic/traffic.js';
+import { PedestrianManager } from '../peds/pedestrians.js';
 
 class CoralVistaEngine {
   constructor() {
@@ -40,6 +43,9 @@ class CoralVistaEngine {
     this.input = new InputController(this.canvas);
     this.cameraController = new ThirdPersonCamera(this.camera, this.collisionWorld);
     this.player = new PlayerController(this.scene, this.collisionWorld);
+    this.vehicleManager = new VehicleManager(this.scene, this.collisionWorld, this.seed);
+    this.trafficManager = new TrafficManager(this.scene, this.collisionWorld, this.seed);
+    this.pedestrianManager = new PedestrianManager(this.scene, this.collisionWorld, this.seed);
 
     // Orient camera initially looking north-northeast down Seabreeze Boulevard
     // showing palm trees, pastel Art Deco hotels, painted road stripes, beach & turquoise sea
@@ -64,8 +70,24 @@ class CoralVistaEngine {
     const mouseDelta = this.input.consumeMouseDelta();
     this.cameraController.applyMouseDelta(mouseDelta.dx, mouseDelta.dy);
 
-    this.player.update(dt, this.input, this.cameraController);
-    this.cameraController.updateForFootTarget(this.player.position, dt);
+    this.vehicleManager.update(
+      dt,
+      this.input,
+      this.player,
+      this.cameraController,
+      this.trafficManager,
+      this.pedestrianManager
+    );
+
+    if (this.vehicleManager.activeVehicle) {
+      this.cameraController.updateForVehicleTarget(this.vehicleManager.activeVehicle, dt);
+    } else {
+      this.player.update(dt, this.input, this.cameraController);
+      this.cameraController.updateForFootTarget(this.player.position, dt);
+    }
+
+    this.trafficManager.update(dt, this.player.position, this.vehicleManager.activeVehicle);
+    this.pedestrianManager.update(dt);
 
     this.renderer.render(this.scene, this.camera);
     this.input.endFrame();
