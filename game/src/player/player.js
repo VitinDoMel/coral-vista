@@ -1,4 +1,4 @@
-// Rafa Sol player character model, third-person camera, and locomotion
+// Rafa Sol player character model, third-person camera, locomotion, and vehicle interactions
 
 import * as THREE from 'three';
 import { PHYSICS } from '../core/constants.js';
@@ -15,7 +15,10 @@ export class Player {
     this.yaw = 0;
     this.pitch = 0.2;
     this.isGrounded = true;
+
     this.inVehicle = false;
+    this.currentVehicle = null;
+    this.interactCooldown = 0;
 
     this.health = 100;
     this.armor = 100;
@@ -101,8 +104,33 @@ export class Player {
     this.scene.add(this.root);
   }
 
-  update(delta, input) {
-    if (this.inVehicle) return;
+  update(delta, input, trafficManager) {
+    if (this.interactCooldown > 0) {
+      this.interactCooldown -= delta;
+    }
+
+    const wantsInteract = input.isDown('KeyF') || input.isDown('KeyE');
+
+    // Handle entering / exiting vehicle
+    if (wantsInteract && this.interactCooldown <= 0) {
+      this.interactCooldown = 0.5;
+      if (this.inVehicle) {
+        this.exitVehicle();
+      } else if (trafficManager) {
+        const nearCar = trafficManager.getNearestVehicle(this.position.x, this.position.z, 3.8);
+        if (nearCar) {
+          this.enterVehicle(nearCar);
+          return;
+        }
+      }
+    }
+
+    if (this.inVehicle && this.currentVehicle) {
+      this.currentVehicle.update(delta, input);
+      this.position.copy(this.currentVehicle.position);
+      this.root.position.copy(this.position);
+      return;
+    }
 
     // Mouse camera orbit rotation
     const mouse = input.consumeMouseDelta();
@@ -118,7 +146,6 @@ export class Player {
     let targetVz = 0;
 
     if (move.forward !== 0 || move.right !== 0) {
-      // Calculate move direction relative to camera yaw
       const forwardX = -Math.sin(this.yaw);
       const forwardZ = -Math.cos(this.yaw);
       const rightX = -forwardZ;
@@ -130,7 +157,6 @@ export class Player {
       targetVx = dirX * speed;
       targetVz = dirZ * speed;
 
-      // Face player toward movement direction
       const targetAngle = Math.atan2(dirX, dirZ);
       const diff = angleDifference(targetAngle, this.root.rotation.y);
       this.root.rotation.y += diff * Math.min(1.0, delta * PHYSICS.PLAYER_TURN_SPEED);
@@ -188,6 +214,35 @@ export class Player {
     this.updateCamera(delta);
   }
 
+  enterVehicle(vehicle) {
+    this.inVehicle = true;
+    this.currentVehicle = vehicle;
+    vehicle.isOccupiedByPlayer = true;
+    this.root.visible = false;
+  }
+
+  exitVehicle() {
+    if (!this.currentVehicle) return;
+
+    this.inVehicle = false;
+    this.currentVehicle.isOccupiedByPlayer = false;
+
+    // Exit on the left side of the vehicle
+    const exitYaw = this.currentVehicle.yaw;
+    const sideX = -Math.cos(exitYaw) * (this.currentVehicle.model.width * 0.5 + 0.9);
+    const sideZ = Math.sin(exitYaw) * (this.currentVehicle.model.width * 0.5 + 0.9);
+
+    this.position.set(
+      this.currentVehicle.position.x + sideX,
+      this.currentVehicle.position.y,
+      this.currentVehicle.position.z + sideZ
+    );
+    this.root.position.copy(this.position);
+    this.root.visible = true;
+
+    this.currentVehicle = null;
+  }
+
   updateCamera(delta) {
     const targetY = this.position.y + this.cameraHeight;
     const camDist = this.cameraDistance;
@@ -202,7 +257,6 @@ export class Player {
       this.position.z + offsetZ
     );
 
-    // Prevent camera dipping below terrain
     const minCamY = this.collisions.getGroundHeight(targetCamPos.x, targetCamPos.z) + 0.6;
     if (targetCamPos.y < minCamY) {
       targetCamPos.y = minCamY;
